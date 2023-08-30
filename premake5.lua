@@ -8,7 +8,16 @@ workspace "GraphicsEditor"
         "Release"
     }
 
+IncludeDir = {}
+IncludeDir["ImGui"] = "GraphicsEditor/vendor/imgui"
+
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+
+
+group "Dependencies"
+    include "GraphicsEditor/vendor/imgui"
+group ""
+
 
 project "GraphicsEditor"
     location "GraphicsEditor"
@@ -23,13 +32,20 @@ project "GraphicsEditor"
     files
     {
         "%{prj.name}/src/**.h",
-        "%{prj.name}/src/**.hpp",
         "%{prj.name}/src/**.cpp"
     }
 
     includedirs
     {
-        "%{prj.name}/src"
+        "%{prj.name}/src",
+        "%{prj.name}/vendor/spdlog/include",
+        "%{IncludeDir.ImGui}"
+    }
+
+    links
+    {
+        "ImGui",
+        "d3d9.lib"
     }
 
     filter "system:windows"

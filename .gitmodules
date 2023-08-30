@@ -1,0 +1,6 @@
+[submodule "GraphicsEditor/vendor/spdlog"]
+	path = GraphicsEditor/vendor/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "GraphicsEditor/vendor/imgui"]
+	path = GraphicsEditor/vendor/imgui
+	url = https://github.com/ycshao21/imgui.git

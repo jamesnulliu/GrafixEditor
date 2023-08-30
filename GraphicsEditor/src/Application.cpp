@@ -1,11 +1,14 @@
 #include "Application.h"
 
-#include <cstdio>
+#include <imgui.h>
+
+// TODO: Remove this.
+void ImGuiExample();
 
 namespace Graphics
 {
     void Application::Run() const
     {
-        printf("Application");
+        ImGuiExample();
     }
 }
