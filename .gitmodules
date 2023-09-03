@@ -4,3 +4,6 @@
 [submodule "GraphicsEditor/vendor/imgui"]
 	path = GraphicsEditor/vendor/imgui
 	url = https://github.com/ycshao21/imgui.git
+[submodule "GraphicsEditor/vendor/GLFW"]
+	path = GraphicsEditor/vendor/glfw
+	url = https://github.com/ycshao21/glfw.git

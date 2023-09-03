@@ -5,7 +5,7 @@
 // TODO: Remove this.
 void ImGuiExample();
 
-namespace Graphics
+namespace GE
 {
     void Application::Run() const
     {

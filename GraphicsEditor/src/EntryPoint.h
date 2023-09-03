@@ -2,13 +2,13 @@
 
 #include "Application.h"
 
-#ifdef GRAPHICS_PLATFORM_WINDOWS
+#ifdef GE_WINDOWS
 
-extern Graphics::Application* Graphics::CreateApplication();
+extern GE::Application* GE::CreateApplication();
 
 int main()
 {
-    Graphics::Application* app = Graphics::CreateApplication();
+    GE::Application* app = GE::CreateApplication();
     app->Run();
     delete app;
 }
