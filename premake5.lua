@@ -99,6 +99,9 @@ project "DraftingBoard"
         "GraphicsEditor/src",
         "GraphicsEditor/vendor",
         "GraphicsEditor/vendor/spdlog/include",
+        "%{IncludeDir.ImGui}",
+        "%{IncludeDir.GLFW}",
+        "%{IncludeDir.Vulkan}"
     }
 
     links { "GraphicsEditor" }
