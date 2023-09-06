@@ -17,5 +17,6 @@ GE::Application* GE::CreateApplication()
     appSpec.Name = "Drafting Board";
     appSpec.Width = 1280;
     appSpec.Height = 720;
+
     return new DraftingBoard(appSpec);
 }

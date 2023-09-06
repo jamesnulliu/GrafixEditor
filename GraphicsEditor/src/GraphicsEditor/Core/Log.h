@@ -2,8 +2,6 @@
 
 #include <spdlog/spdlog.h>
 
-#include <memory>
-
 namespace GE
 {
     class Log final
