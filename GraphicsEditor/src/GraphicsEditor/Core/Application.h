@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
+#include "Window.h"
 
-struct GLFWwindow;
+#include <string>
 
 namespace GE
 {
@@ -21,9 +21,10 @@ namespace GE
 
         void Run();
     private:
+        AppSpecification m_AppSpec;
+        std::unique_ptr<Window> m_Window;
+
         bool m_IsRunning = true;
-        GLFWwindow* m_WindowHandle = nullptr;
-        AppSpecification m_Specification;
     };
 
     // Define the function in client

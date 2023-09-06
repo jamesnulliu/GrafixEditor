@@ -27,7 +27,6 @@ static VkQueue                  g_Queue = VK_NULL_HANDLE;
 static VkDebugReportCallbackEXT g_DebugReport = VK_NULL_HANDLE;
 static VkPipelineCache          g_PipelineCache = VK_NULL_HANDLE;
 static VkDescriptorPool         g_DescriptorPool = VK_NULL_HANDLE;
-
 static ImGui_ImplVulkanH_Window g_MainWindowData;
 static int                      g_MinImageCount = 2;
 static bool                     g_SwapChainRebuild = false;
@@ -40,7 +39,7 @@ static std::vector<std::vector<std::function<void()>>> s_ResourceFreeQueue;
 // and is always guaranteed to increase (eg. 0, 1, 2, 0, 1, 2)
 static uint32_t s_CurrentFrameIndex = 0;
 
-static GE::Application* s_Instance = nullptr;
+static GE::Application* s_AppInstance = nullptr;
 
 void check_vk_result(VkResult err)
 {
@@ -350,23 +349,17 @@ static void FramePresent(ImGui_ImplVulkanH_Window* wd)
     wd->SemaphoreIndex = (wd->SemaphoreIndex + 1) % wd->ImageCount; // Now we can use the next set of semaphores
 }
 
-static void glfw_error_callback(int error, const char* description)
-{
-    GE_ERROR("Glfw Error {0}: {1}", error, description);
-}
-
 namespace GE
 {
     Application::Application(const AppSpecification& appSpec)
-        : m_Specification(appSpec)
+        : m_AppSpec(appSpec)
     {
-        // Setup GLFW window
-        glfwSetErrorCallback(glfw_error_callback);
-        int success = glfwInit();
-        GE_ASSERT(success, "Could not initalize GLFW!");
+        s_AppInstance = this;
 
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        m_WindowHandle = glfwCreateWindow(m_Specification.Width, m_Specification.Height, m_Specification.Name.c_str(), nullptr, nullptr);
+        // Setup window
+        m_Window = std::unique_ptr<Window>(Window::Create(appSpec.Name, appSpec.Width, appSpec.Height));
+        // TODO: Remove this.
+        GLFWwindow* nativeWindow = static_cast<GLFWwindow*>(m_Window->GetNativeWindow());
 
         // Setup Vulkan
         GE_ASSERT(glfwVulkanSupported(), "GLFW: Vulkan not supported!");
@@ -380,12 +373,12 @@ namespace GE
 
         // Create Window Surface
         VkSurfaceKHR surface;
-        VkResult err = glfwCreateWindowSurface(g_Instance, m_WindowHandle, g_Allocator, &surface);
+        VkResult err = glfwCreateWindowSurface(g_Instance, nativeWindow, g_Allocator, &surface);
         check_vk_result(err);
 
         // Create Framebuffers
         int w, h;
-        glfwGetFramebufferSize(m_WindowHandle, &w, &h);
+        glfwGetFramebufferSize(nativeWindow, &w, &h);
         ImGui_ImplVulkanH_Window* wd = &g_MainWindowData;
         SetupVulkanWindow(wd, surface, w, h);
 
@@ -412,7 +405,7 @@ namespace GE
         }
 
         // Setup Platform/Renderer backends
-        ImGui_ImplGlfw_InitForVulkan(m_WindowHandle, true);
+        ImGui_ImplGlfw_InitForVulkan(nativeWindow, true);
         ImGui_ImplVulkan_InitInfo init_info = {};
         init_info.Instance = g_Instance;
         init_info.PhysicalDevice = g_PhysicalDevice;
@@ -428,12 +421,6 @@ namespace GE
         init_info.Allocator = g_Allocator;
         init_info.CheckVkResultFn = check_vk_result;
         ImGui_ImplVulkan_Init(&init_info, wd->RenderPass);
-
-        // Load default font
-        ////ImFontConfig fontConfig;
-        ////fontConfig.FontDataOwnedByAtlas = false;
-        ////ImFont* robotoFont = io.Fonts->AddFontFromMemoryTTF((void*)g_RobotoRegular, sizeof(g_RobotoRegular), 20.0f, &fontConfig);
-        ////io.FontDefault = robotoFont;
 
         // Upload Fonts
         {
@@ -468,11 +455,6 @@ namespace GE
 
     Application::~Application()
     {
-        ////for (auto& layer : m_LayerStack)
-        ////    layer->OnDetach();
-
-        ////m_LayerStack.clear();
-
         // Cleanup
         VkResult err = vkDeviceWaitIdle(g_Device);
         check_vk_result(err);
@@ -491,21 +473,21 @@ namespace GE
 
         CleanupVulkanWindow();
         CleanupVulkan();
-
-        glfwDestroyWindow(m_WindowHandle);
-        glfwTerminate();
     }
 
     void Application::Run()
     {
         m_IsRunning = true;
+        // TODO: Remove this.
+        GLFWwindow* nativeWindow = static_cast<GLFWwindow*>(m_Window->GetNativeWindow());
 
         ImGui_ImplVulkanH_Window* wd = &g_MainWindowData;
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
         ImGuiIO& io = ImGui::GetIO();
 
         // Main loop
-        while (!glfwWindowShouldClose(m_WindowHandle) && m_IsRunning)
+
+        while (!glfwWindowShouldClose(nativeWindow) && m_IsRunning)
         {
             // Poll and handle events (inputs, window resize, etc.)
             // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -518,7 +500,7 @@ namespace GE
             if (g_SwapChainRebuild)
             {
                 int width, height;
-                glfwGetFramebufferSize(m_WindowHandle, &width, &height);
+                glfwGetFramebufferSize(nativeWindow, &width, &height);
                 if (width > 0 && height > 0)
                 {
                     ImGui_ImplVulkan_SetMinImageCount(g_MinImageCount);
