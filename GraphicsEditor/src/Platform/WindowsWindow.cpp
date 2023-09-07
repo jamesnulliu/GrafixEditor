@@ -25,9 +25,7 @@ namespace GE
             glfwSetErrorCallback(glfw_error_callback);
         }
 
-#ifdef GE_DEBUG
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-#endif // GE_DEBUG
 
         m_NativeWindow = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
         s_GLFWWindowCreated = true;

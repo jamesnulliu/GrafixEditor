@@ -18,6 +18,8 @@ namespace GE
 
         virtual void* GetNativeWindow() const = 0;
 
+        ////void SetEventCallback(std::function<void()>()) {}
+
         static std::unique_ptr<Window> Create(const std::string& title, uint32_t width, uint32_t height);
     protected:
         struct WindowData
