@@ -53,7 +53,7 @@ void EditorLayer::OnImGuiRender()
             {
                 if (ImGui::MenuItem("Exit"))
                 {
-                    GE::Application::Get().Close();
+                    Grafix::Application::Get().Close();
                 }
                 ImGui::EndMenu();
             }
@@ -67,7 +67,7 @@ void EditorLayer::OnImGuiRender()
         {
             m_ViewportWidth = ImGui::GetContentRegionAvail().x;
             m_ViewportHeight = ImGui::GetContentRegionAvail().y;
-            GE_INFO("DraftingBoard: Viewport ({0}, {1})", m_ViewportWidth, m_ViewportHeight);
+            GF_INFO("DraftingBoard: Viewport ({0}, {1})", m_ViewportWidth, m_ViewportHeight);
         }
         ImGui::End(); // Viewport
 

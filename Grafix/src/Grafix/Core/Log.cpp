@@ -2,7 +2,7 @@
 
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-namespace GE
+namespace Grafix
 {
     std::shared_ptr<spdlog::logger> Log::s_Logger;
 

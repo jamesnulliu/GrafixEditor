@@ -1,1 +1,2 @@
-# GraphicsEditor
+# GrafixEditor
+上海大学计算机工程与科学学院 《计算机图形学》课程项目

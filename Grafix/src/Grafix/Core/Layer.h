@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace GE
+namespace Grafix
 {
     // --------------------------------------------------------
     // Inherit this class to create layers for the application.

@@ -1,13 +1,13 @@
-#include "GraphicsEditor.h"
-#include "GraphicsEditor/Core/EntryPoint.h"
+#include "Grafix.h"
+#include "Grafix/Core/EntryPoint.h"
 
 #include "Panels/EditorLayer.h"
 
-class DraftingBoard : public GE::Application
+class DraftingBoard : public Grafix::Application
 {
 public:
-    DraftingBoard(const GE::AppSpecification& appSpec) :
-        GE::Application(appSpec)
+    DraftingBoard(const Grafix::AppSpecification& appSpec) :
+        Grafix::Application(appSpec)
     {
         PushLayer(new EditorLayer());
     }
@@ -15,7 +15,7 @@ public:
     virtual ~DraftingBoard() = default;
 };
 
-GE::Application* GE::CreateApplication()
+Grafix::Application* Grafix::CreateApplication()
 {
     AppSpecification appSpec;
     appSpec.Name = "Drafting Board";

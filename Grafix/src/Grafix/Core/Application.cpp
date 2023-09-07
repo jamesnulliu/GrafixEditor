@@ -43,7 +43,7 @@ static uint32_t s_CurrentFrameIndex = 0;
 
 void check_vk_result(VkResult result)
 {
-    GE_ASSERT(result == 0, "Vulkan error! VkResult = {0}", result);
+    GF_ASSERT(result == 0, "Vulkan error! VkResult = {0}", result);
 }
 
 //#define IMGUI_UNLIMITED_FRAME_RATE
@@ -54,7 +54,7 @@ void check_vk_result(VkResult result)
 #ifdef VULKAN_DEBUG_REPORT
 static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode, const char* pLayerPrefix, const char* pMessage, void* pUserData)
 {
-    GE_DEBUG("Vulkan debug report from ObjectType: {0}, message: {1}", objectType, pMessage);
+    GF_DEBUG("Vulkan debug report from ObjectType: {0}, message: {1}", objectType, pMessage);
     return VK_FALSE;
 }
 #endif // VULKAN_DEBUG_REPORT
@@ -64,7 +64,7 @@ static VkPhysicalDevice SelectPhysicalDevice()
     uint32_t gpu_count;
     g_Result = vkEnumeratePhysicalDevices(g_Instance, &gpu_count, nullptr);
     check_vk_result(g_Result);
-    GE_ASSERT(gpu_count > 0, "Cannot find physical devices!");
+    GF_ASSERT(gpu_count > 0, "Cannot find physical devices!");
 
     std::vector<VkPhysicalDevice> gpus(gpu_count);
     g_Result = vkEnumeratePhysicalDevices(g_Instance, &gpu_count, gpus.data());
@@ -105,7 +105,7 @@ static void SetupVulkan(std::vector<const char*> instance_extensions)
         create_info.enabledExtensionCount = (uint32_t)instance_extensions.size();
         create_info.ppEnabledExtensionNames = instance_extensions.data();
         g_Result = vkCreateInstance(&create_info, g_Allocator, &g_Instance);
-        GE_ASSERT(g_Result == VK_SUCCESS, "Failed to create Vulkan instance!");
+        GF_ASSERT(g_Result == VK_SUCCESS, "Failed to create Vulkan instance!");
 
 #ifdef VULKAN_DEBUG_REPORT
         // Setup the debug report callback
@@ -161,7 +161,7 @@ static void SetupVulkan(std::vector<const char*> instance_extensions)
         create_info.ppEnabledExtensionNames = device_extensions.data();
 
         g_Result = vkCreateDevice(g_PhysicalDevice, &create_info, g_Allocator, &g_Device);
-        GE_ASSERT(g_Result == VK_SUCCESS, "Failed to create device!");
+        GF_ASSERT(g_Result == VK_SUCCESS, "Failed to create device!");
 
         vkGetDeviceQueue(g_Device, g_QueueFamily, 0, &g_Queue);
     }
@@ -189,7 +189,7 @@ static void SetupVulkan(std::vector<const char*> instance_extensions)
         pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
         pool_info.pPoolSizes = pool_sizes;
         g_Result = vkCreateDescriptorPool(g_Device, &pool_info, g_Allocator, &g_DescriptorPool);
-        GE_ASSERT(g_Result == VK_SUCCESS, "Failed to create descriptor pool!");
+        GF_ASSERT(g_Result == VK_SUCCESS, "Failed to create descriptor pool!");
     }
 }
 
@@ -202,7 +202,7 @@ static void SetupVulkanWindow(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface
     // Check for WSI support
     VkBool32 res;
     vkGetPhysicalDeviceSurfaceSupportKHR(g_PhysicalDevice, g_QueueFamily, wd->Surface, &res);
-    GE_ASSERT(res == VK_TRUE, "Error no WSI support on physical device 0!");
+    GF_ASSERT(res == VK_TRUE, "Error no WSI support on physical device 0!");
 
     // Select Surface Format
     const VkFormat requestSurfaceImageFormat[] = { VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
@@ -350,7 +350,7 @@ static void FramePresent(ImGui_ImplVulkanH_Window* wd)
     wd->SemaphoreIndex = (wd->SemaphoreIndex + 1) % wd->ImageCount; // Now we can use the next set of semaphores
 }
 
-namespace GE
+namespace Grafix
 {
     Application* Application::s_AppInstance = nullptr;
 
@@ -453,7 +453,7 @@ namespace GE
         GLFWwindow* nativeWindow = static_cast<GLFWwindow*>(m_Window->GetNativeWindow());
 
         // Setup Vulkan
-        GE_ASSERT(glfwVulkanSupported(), "GLFW: Vulkan not supported!");
+        GF_ASSERT(glfwVulkanSupported(), "GLFW: Vulkan not supported!");
 
         std::vector<const char*> extensions;
         uint32_t extensions_count = 0;
@@ -464,7 +464,7 @@ namespace GE
 
         VkSurfaceKHR surface;
         g_Result = glfwCreateWindowSurface(g_Instance, nativeWindow, g_Allocator, &surface);
-        GE_ASSERT(g_Result == VK_SUCCESS, "Failed to create window surface!");
+        GF_ASSERT(g_Result == VK_SUCCESS, "Failed to create window surface!");
 
         // Create Framebuffers
         int w, h;
@@ -502,13 +502,13 @@ namespace GE
             VkCommandBuffer command_buffer = wd->Frames[wd->FrameIndex].CommandBuffer;
 
             g_Result = vkResetCommandPool(g_Device, command_pool, 0);
-            GE_ASSERT(g_Result == VK_SUCCESS, "Failed to create command pool!");
+            GF_ASSERT(g_Result == VK_SUCCESS, "Failed to create command pool!");
 
             VkCommandBufferBeginInfo begin_info = {};
             begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
             begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
             g_Result = vkBeginCommandBuffer(command_buffer, &begin_info);
-            GE_ASSERT(g_Result == VK_SUCCESS, "Failed to record command buffer!");
+            GF_ASSERT(g_Result == VK_SUCCESS, "Failed to record command buffer!");
 
             ImGui_ImplVulkan_CreateFontsTexture(command_buffer);
 
@@ -517,7 +517,7 @@ namespace GE
             end_info.commandBufferCount = 1;
             end_info.pCommandBuffers = &command_buffer;
             g_Result = vkEndCommandBuffer(command_buffer);
-            GE_ASSERT(g_Result == VK_SUCCESS, "Failed to record command buffer!");
+            GF_ASSERT(g_Result == VK_SUCCESS, "Failed to record command buffer!");
 
             g_Result = vkQueueSubmit(g_Queue, 1, &end_info, VK_NULL_HANDLE);
             check_vk_result(g_Result);

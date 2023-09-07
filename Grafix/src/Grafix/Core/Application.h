@@ -1,12 +1,12 @@
 #pragma once
 
 #include "Window.h"
-#include "GraphicsEditor/ImGui/ImGuiLayer.h"
+#include "Grafix/ImGui/ImGuiLayer.h"
 
 #include <vector>
 #include <string>
 
-namespace GE
+namespace Grafix
 {
     struct AppSpecification
     {

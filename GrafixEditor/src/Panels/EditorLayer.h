@@ -1,11 +1,11 @@
 #pragma once
 
-#include "GraphicsEditor.h"
+#include "Grafix.h"
 
-class EditorLayer : public GE::Layer
+class EditorLayer : public Grafix::Layer
 {
 public:
-    EditorLayer() : Layer("Drafting Board Layer") {}
+    EditorLayer() : Layer("Editor Layer") {}
     virtual ~EditorLayer() = default;
 
     virtual void OnImGuiRender() override;

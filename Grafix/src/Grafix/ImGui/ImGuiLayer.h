@@ -1,8 +1,8 @@
 #pragma once
 
-#include "GraphicsEditor/Core/Layer.h"
+#include "Grafix/Core/Layer.h"
 
-namespace GE
+namespace Grafix
 {
     class ImGuiLayer final : public Layer
     {

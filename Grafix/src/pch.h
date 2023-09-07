@@ -1,8 +1,8 @@
 #pragma once
 
-#ifdef GE_WINDOWS
+#ifdef GF_WINDOWS
 #    include <Windows.h>
-#endif // GE_WINDOWS
+#endif // GF_WINDOWS
 
 // ---- C++ Standard Library ----
 
@@ -18,6 +18,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-// ---- Graphics ----
+// ---- Grafix ----
 
-#include "GraphicsEditor/Core/Core.h"
+#include "Grafix/Core/Core.h"

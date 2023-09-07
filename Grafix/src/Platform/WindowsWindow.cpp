@@ -1,15 +1,15 @@
 #include "pch.h"
 
 #include "WindowsWindow.h"
-#include "GraphicsEditor/Core/Window.h"
+#include "Grafix/Core/Window.h"
 
-namespace GE
+namespace Grafix
 {
     static bool s_GLFWWindowCreated = false;
 
     static void glfw_error_callback(int error, const char* description)
     {
-        GE_ERROR("Glfw Error {0}: {1}", error, description);
+        GF_ERROR("Glfw Error {0}: {1}", error, description);
     }
 
     WindowsWindow::WindowsWindow(const std::string& title, uint32_t width, uint32_t height)
@@ -21,7 +21,7 @@ namespace GE
         if (s_GLFWWindowCreated == false)
         {
             int success = glfwInit();
-            GE_ASSERT(success, "Could not initalize GLFW!");
+            GF_ASSERT(success, "Could not initalize GLFW!");
             glfwSetErrorCallback(glfw_error_callback);
         }
 

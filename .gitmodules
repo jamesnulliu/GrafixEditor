@@ -1,9 +1,9 @@
-[submodule "GraphicsEditor/vendor/spdlog"]
-	path = GraphicsEditor/vendor/spdlog
-	url = https://github.com/gabime/spdlog.git
-[submodule "GraphicsEditor/vendor/imgui"]
-	path = GraphicsEditor/vendor/imgui
+[submodule "Grafix/vendor/imgui"]
+	path = Grafix/vendor/imgui
 	url = https://github.com/ycshao21/imgui.git
-[submodule "GraphicsEditor/vendor/GLFW"]
-	path = GraphicsEditor/vendor/GLFW
+[submodule "Grafix/vendor/glfw"]
+	path = Grafix/vendor/glfw
 	url = https://github.com/ycshao21/glfw.git
+[submodule "Grafix/vendor/spdlog"]
+	path = Grafix/vendor/spdlog
+	url = https://github.com/gabime/spdlog.git

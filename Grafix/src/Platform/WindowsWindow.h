@@ -1,10 +1,10 @@
 #pragma once
 
-#include "GraphicsEditor/Core/Window.h"
+#include "Grafix/Core/Window.h"
 
 #include <GLFW/glfw3.h>
 
-namespace GE
+namespace Grafix
 {
     // GLFW Window
     class WindowsWindow final : public Window

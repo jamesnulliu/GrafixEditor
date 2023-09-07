@@ -1,8 +1,8 @@
 VULKAN = os.getenv("VULKAN_SDK")
 
-workspace "GraphicsEditor"
+workspace "Grafix"
     architecture "x64"
-    startproject "DraftingBoard"
+    startproject "GrafixEditor"
 
     configurations
     {
@@ -11,8 +11,8 @@ workspace "GraphicsEditor"
     }
 
 IncludeDir = {}
-IncludeDir["ImGui"] = "GraphicsEditor/vendor/imgui"
-IncludeDir["GLFW"] = "GraphicsEditor/vendor/GLFW/include"
+IncludeDir["ImGui"] = "Grafix/vendor/imgui"
+IncludeDir["GLFW"] = "Grafix/vendor/glfw/include"
 IncludeDir["Vulkan"] = "%{VULKAN}/Include"
 
 Library = {}
@@ -22,13 +22,13 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 
 group "Dependencies"
-    include "GraphicsEditor/vendor/imgui"
-    include "GraphicsEditor/vendor/GLFW"
+    include "Grafix/vendor/imgui"
+    include "Grafix/vendor/glfw"
 group ""
 
 
-project "GraphicsEditor"
-    location "GraphicsEditor"
+project "Grafix"
+    location "Grafix"
     kind "StaticLib"
     language "C++"
     cppdialect "C++20"
@@ -38,7 +38,7 @@ project "GraphicsEditor"
     objdir("bin-int/" .. outputdir .. "/%{prj.name}")
 
     pchheader "pch.h"
-    pchsource "GraphicsEditor/src/pch.cpp"
+    pchsource "Grafix/src/pch.cpp"
 
     files
     {
@@ -67,22 +67,22 @@ project "GraphicsEditor"
 
         defines
         {
-            "GE_WINDOWS"
+            "GF_WINDOWS"
         }
 
     filter "configurations:Debug"
-        defines "GE_DEBUG"
+        defines "GF_DEBUG"
         runtime "Debug"
         symbols "on"
 
     filter "configurations:Release"
-        defines "GE_RELEASE"
+        defines "GF_RELEASE"
         runtime "Release"
         optimize "on"
 
 
-project "DraftingBoard"
-    location "DraftingBoard"
+project "GrafixEditor"
+    location "GrafixEditor"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++20"
@@ -99,27 +99,27 @@ project "DraftingBoard"
 
     includedirs
     {
-        "GraphicsEditor/src",
-        "GraphicsEditor/vendor",
-        "GraphicsEditor/vendor/spdlog/include",
+        "Grafix/src",
+        "Grafix/vendor",
+        "Grafix/vendor/spdlog/include",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.Vulkan}"
     }
 
-    links { "GraphicsEditor" }
+    links { "Grafix" }
 
     filter "system:windows"
         systemversion "latest"
 
-        defines { "GE_WINDOWS" }
+        defines { "GF_WINDOWS" }
 
     filter "configurations:Debug"
-        defines "GE_DEBUG"
+        defines "GF_DEBUG"
         runtime "Debug"
         symbols "on"
 
     filter "configurations:Release"
-        defines "GE_RELEASE"
+        defines "GF_RELEASE"
         runtime "Release"
         optimize "on"

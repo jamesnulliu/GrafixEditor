@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 
-namespace GE
+namespace Grafix
 {
     class Window
     {
