@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Image.h"
 
-#include "Application.h"
+#include "Grafix/Core/Application.h"
 
 namespace Grafix
 {
