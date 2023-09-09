@@ -5,49 +5,6 @@
 
 namespace Grafix
 {
-    static uint32_t BytesPerPixel(ImageFormat format)
-    {
-        switch (format)
-        {
-        case ImageFormat::RGBA: { return 4; }
-        }
-        return 0;
-    }
-
-    static VkFormat ToVulkanFormat(ImageFormat format)
-    {
-        switch (format)
-        {
-        case ImageFormat::RGBA: { return VK_FORMAT_R8G8B8A8_UNORM; }
-        }
-        return (VkFormat)0;
-    }
-
-    static uint32_t RGBAToUint32(const glm::vec4& color)
-    {
-        uint8_t r = (uint8_t)(color.r * 255.0f);
-        uint8_t g = (uint8_t)(color.g * 255.0f);
-        uint8_t b = (uint8_t)(color.b * 255.0f);
-        uint8_t a = (uint8_t)(color.a * 255.0f);
-        return (a << 24) | (b << 16) | (g << 8) | r;
-    }
-
-    static uint32_t GetMemoryType(VkMemoryPropertyFlags properties, uint32_t typeBits)
-    {
-        VkPhysicalDeviceMemoryProperties memProps;
-        vkGetPhysicalDeviceMemoryProperties(Application::GetPhysicalDevice(), &memProps);
-
-        for (uint32_t i = 0; i < memProps.memoryTypeCount; i++)
-        {
-            if ((memProps.memoryTypes[i].propertyFlags & properties) == properties && typeBits & (1 << i))
-            {
-                return i;
-            }
-        }
-
-        return 0xffffffff;
-    }
-
     Image::Image(uint32_t width, uint32_t height, ImageFormat format, const void* data)
         : m_Width(width), m_Height(height), m_Format(format)
     {
@@ -69,7 +26,7 @@ namespace Grafix
         VkResult result;
         VkDevice device = Application::GetDevice();
 
-        uint32_t uploadSize = m_Width * m_Height * BytesPerPixel(m_Format);
+        uint64_t uploadSize = m_Width * m_Height * BytesPerPixel(m_Format);
 
         if (!m_UploadBuffer)
         {
@@ -86,8 +43,9 @@ namespace Grafix
 
                 VkMemoryRequirements req;
                 vkGetBufferMemoryRequirements(device, m_UploadBuffer, &req);
+                m_AlignedSize = (uint64_t)req.size;
 
-                VkMemoryAllocateInfo alloc_info = {};
+                VkMemoryAllocateInfo alloc_info{};
                 alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
                 alloc_info.allocationSize = req.size;
                 alloc_info.memoryTypeIndex = GetMemoryType(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, req.memoryTypeBits);
@@ -97,8 +55,6 @@ namespace Grafix
 
                 result = vkBindBufferMemory(device, m_UploadBuffer, m_UploadBufferMemory, 0);
                 GF_ASSERT(result == VK_SUCCESS, "Failed to bind buffer memory for image!");
-
-                m_AlignedSize = (uint64_t)req.size;
             }
         }
 
@@ -122,7 +78,7 @@ namespace Grafix
 
         // Copy to Image
         {
-            VkCommandBuffer command_buffer = Application::GetCommandBuffer();
+            VkCommandBuffer commandBuffer = Application::GetCommandBuffer();
 
             VkImageMemoryBarrier copy_barrier[1] = {};
             copy_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -135,7 +91,7 @@ namespace Grafix
             copy_barrier[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             copy_barrier[0].subresourceRange.levelCount = 1;
             copy_barrier[0].subresourceRange.layerCount = 1;
-            vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1, copy_barrier);
+            vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, copy_barrier);
 
             VkBufferImageCopy region = {};
             region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -143,23 +99,23 @@ namespace Grafix
             region.imageExtent.width = m_Width;
             region.imageExtent.height = m_Height;
             region.imageExtent.depth = 1;
-            vkCmdCopyBufferToImage(command_buffer, m_UploadBuffer, m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+            vkCmdCopyBufferToImage(commandBuffer, m_UploadBuffer, m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
             VkImageMemoryBarrier useBarrier[1] = {};
-            useBarrier[1].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-            useBarrier[1].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            useBarrier[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            useBarrier[1].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-            useBarrier[1].newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            useBarrier[1].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            useBarrier[1].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            useBarrier[1].image = m_Image;
-            useBarrier[1].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            useBarrier[1].subresourceRange.levelCount = 1;
-            useBarrier[1].subresourceRange.layerCount = 1;
-            vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL, 0, NULL, 1, useBarrier);
+            useBarrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+            useBarrier[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            useBarrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            useBarrier[0].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            useBarrier[0].newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            useBarrier[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            useBarrier[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            useBarrier[0].image = m_Image;
+            useBarrier[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            useBarrier[0].subresourceRange.levelCount = 1;
+            useBarrier[0].subresourceRange.layerCount = 1;
+            vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, useBarrier);
 
-            Application::FlushCommandBuffer(command_buffer);
+            Application::FlushCommandBuffer(commandBuffer);
         }
     }
 
@@ -268,5 +224,47 @@ namespace Grafix
             };
 
         Application::SubmitResourceFree(fn);
+
+        m_ImageView = nullptr;
+        m_Image = nullptr;
+        m_ImageMemory = nullptr;
+        m_Sampler = nullptr;
+        m_UploadBuffer = nullptr;
+        m_UploadBufferMemory = nullptr;
+    }
+
+    uint32_t Image::BytesPerPixel(ImageFormat format) const
+    {
+        switch (format)
+        {
+        case ImageFormat::RGBA: { return 4; }
+        }
+        return 0;
+    }
+
+    VkFormat Image::ToVulkanFormat(ImageFormat format) const
+    {
+        switch (format)
+        {
+        case ImageFormat::RGBA: { return VK_FORMAT_R8G8B8A8_UNORM; }
+        }
+
+        return (VkFormat)0;
+    }
+
+    uint32_t Image::GetMemoryType(VkMemoryPropertyFlags properties, uint32_t typeBits) const
+    {
+        VkPhysicalDeviceMemoryProperties memProps;
+        vkGetPhysicalDeviceMemoryProperties(Application::GetPhysicalDevice(), &memProps);
+
+        for (uint32_t i = 0; i < memProps.memoryTypeCount; i++)
+        {
+            if ((memProps.memoryTypes[i].propertyFlags & properties) == properties && typeBits & (1 << i))
+            {
+                return i;
+            }
+        }
+
+        return 0xffffffff;
     }
 }

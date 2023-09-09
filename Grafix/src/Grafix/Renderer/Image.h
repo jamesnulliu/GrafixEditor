@@ -7,7 +7,7 @@ namespace Grafix
     enum class ImageFormat : uint8_t
     {
         None = 0,
-        RGBA
+        RGBA,
     };
 
     class Image
@@ -20,12 +20,16 @@ namespace Grafix
         void Resize(uint32_t width, uint32_t height);
 
         uint32_t GetWidth() const { return m_Width; }
-        uint32_t GetHeight() const { return m_Width; }
+        uint32_t GetHeight() const { return m_Height; }
 
         VkDescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
     private:
         void Allocate();
         void Release();
+
+        uint32_t BytesPerPixel(ImageFormat format) const;
+        VkFormat ToVulkanFormat(ImageFormat format) const;
+        uint32_t GetMemoryType(VkMemoryPropertyFlags properties, uint32_t typeBits) const;
     private:
         uint32_t m_Width, m_Height;
         ImageFormat m_Format = ImageFormat::None;

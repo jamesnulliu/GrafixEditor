@@ -59,13 +59,12 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReport(VkDebugReportFlagsEXT flags, V
 static void FrameRender(ImDrawData* draw_data)
 {
     VkResult result;
-    ImGui_ImplVulkanH_Window* wd = &g_WindowData;
 
+    ImGui_ImplVulkanH_Window* wd = &g_WindowData;
     VkSemaphore image_acquired_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].ImageAcquiredSemaphore;
     VkSemaphore render_complete_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].RenderCompleteSemaphore;
 
-    Grafix::Application& app = Grafix::Application::Get();
-    result = vkAcquireNextImageKHR(app.GetDevice(), wd->Swapchain, UINT64_MAX, image_acquired_semaphore, VK_NULL_HANDLE, &wd->FrameIndex);
+    result = vkAcquireNextImageKHR(g_Device, wd->Swapchain, UINT64_MAX, image_acquired_semaphore, VK_NULL_HANDLE, &wd->FrameIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {
         g_SwapChainRebuild = true;
@@ -77,10 +76,10 @@ static void FrameRender(ImDrawData* draw_data)
 
     ImGui_ImplVulkanH_Frame* fd = &wd->Frames[wd->FrameIndex];
     {
-        result = vkWaitForFences(app.GetDevice(), 1, &fd->Fence, VK_TRUE, UINT64_MAX);    // wait indefinitely instead of periodically checking
+        result = vkWaitForFences(g_Device, 1, &fd->Fence, VK_TRUE, UINT64_MAX);    // wait indefinitely instead of periodically checking
         CheckVkResult(result);
 
-        result = vkResetFences(app.GetDevice(), 1, &fd->Fence);
+        result = vkResetFences(g_Device, 1, &fd->Fence);
         CheckVkResult(result);
     }
 
@@ -97,12 +96,11 @@ static void FrameRender(ImDrawData* draw_data)
         auto& allocatedCommandBuffers = s_CommandBuffers[wd->FrameIndex];
         if (allocatedCommandBuffers.size() > 0)
         {
-            vkFreeCommandBuffers(app.GetDevice(), fd->CommandPool, (uint32_t)allocatedCommandBuffers.size(),
-                allocatedCommandBuffers.data());
+            vkFreeCommandBuffers(g_Device, fd->CommandPool, (uint32_t)allocatedCommandBuffers.size(), allocatedCommandBuffers.data());
             allocatedCommandBuffers.clear();
         }
 
-        result = vkResetCommandPool(app.GetDevice(), fd->CommandPool, 0);
+        result = vkResetCommandPool(g_Device, fd->CommandPool, 0);
         CheckVkResult(result);
 
         // Begin command buffer
@@ -219,8 +217,6 @@ namespace Grafix
     {
         m_IsRunning = true;
         ImGui_ImplVulkanH_Window* windowData = &g_WindowData;
-
-        ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
         ImGuiIO& io = ImGui::GetIO();
 
         // Main loop
@@ -232,6 +228,12 @@ namespace Grafix
             // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
             // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
             glfwPollEvents();
+
+            // Update all layers
+            for (Layer* layer : m_LayerStack)
+            {
+                layer->OnUpdate();
+            }
 
             // Resize swap chain?
             if (g_SwapChainRebuild)
@@ -300,8 +302,8 @@ namespace Grafix
         SelectPhysicalDevice();
         SelectGraphicsQueueFamily();
         CreateLogicalDevice();
-        CreateWindowSurface();
         CreateDescriptorPool();
+        CreateWindowSurface();
         CreateFramebuffers();
 
         // Create Framebuffers
@@ -337,7 +339,7 @@ namespace Grafix
             VkCommandPool commandPool = wd->Frames[wd->FrameIndex].CommandPool;
             VkCommandBuffer commandBuffer = wd->Frames[wd->FrameIndex].CommandBuffer;
 
-            result = vkResetCommandPool(Application::GetDevice(), commandPool, 0);
+            result = vkResetCommandPool(g_Device, commandPool, 0);
             GF_ASSERT(result == VK_SUCCESS, "Cannot reset command pool!");
 
             VkCommandBufferBeginInfo beginInfo = {};
@@ -376,11 +378,11 @@ namespace Grafix
         {
             layer->OnDetach();
         }
+        m_LayerStack.clear();
 
         // Cleanup
         result = vkDeviceWaitIdle(g_Device);
-        GF_ASSERT(result == VK_SUCCESS, "");
-        CheckVkResult(result);
+        GF_ASSERT(result == VK_SUCCESS, "Device is not ready.");
 
         // Free resources in queue
         for (auto& queue : s_ResourceFreeQueue)
@@ -532,14 +534,6 @@ namespace Grafix
         vkGetDeviceQueue(g_Device, g_QueueFamily, 0, &g_Queue);
     }
 
-    void Application::CreateWindowSurface()
-    {
-        VkResult result;
-
-        result = glfwCreateWindowSurface(g_Instance, m_Window->GetHandle(), nullptr, &g_Surface);
-        GF_ASSERT(result == VK_SUCCESS, "Failed to create window surface!");
-    }
-
     void Application::CreateDescriptorPool()
     {
         VkResult result;
@@ -570,24 +564,31 @@ namespace Grafix
         GF_ASSERT(result == VK_SUCCESS, "Failed to create descriptor pool!");
     }
 
+    void Application::CreateWindowSurface()
+    {
+        VkResult result;
+
+        result = glfwCreateWindowSurface(g_Instance, m_Window->GetHandle(), nullptr, &g_Surface);
+        GF_ASSERT(result == VK_SUCCESS, "Failed to create window surface!");
+    }
+
     void Application::CreateFramebuffers()
     {
-        Application& app = Application::Get();
-        ImGui_ImplVulkanH_Window* wd = &g_WindowData;
-
         int width, height;
         glfwGetFramebufferSize(m_Window->GetHandle(), &width, &height);
 
-        // Check for WSI support
-        VkBool32 res;
+        ImGui_ImplVulkanH_Window* wd = &g_WindowData;
         wd->Surface = g_Surface;
 
+        // Check for WSI support
+        VkBool32 res;
         vkGetPhysicalDeviceSurfaceSupportKHR(g_PhysicalDevice, g_QueueFamily, wd->Surface, &res);
         GF_ASSERT(res == VK_TRUE, "No WSI support on physical device!");
 
         // Select Surface Format
         const VkFormat requestSurfaceImageFormat[] = { VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM,
-            VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
+            VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM
+        };
         const VkColorSpaceKHR requestSurfaceColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
         wd->SurfaceFormat = ImGui_ImplVulkanH_SelectSurfaceFormat(g_PhysicalDevice, wd->Surface,
             requestSurfaceImageFormat, (size_t)IM_ARRAYSIZE(requestSurfaceImageFormat), requestSurfaceColorSpace);
@@ -598,13 +599,11 @@ namespace Grafix
 #else
         VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_FIFO_KHR };
 #endif
-        wd->PresentMode = ImGui_ImplVulkanH_SelectPresentMode(g_PhysicalDevice, wd->Surface,
-            &present_modes[0], IM_ARRAYSIZE(present_modes));
+        wd->PresentMode = ImGui_ImplVulkanH_SelectPresentMode(g_PhysicalDevice, wd->Surface, &present_modes[0], IM_ARRAYSIZE(present_modes));
 
         // Create SwapChain, RenderPass, Framebuffer, etc.
         GF_ASSERT(g_MinImageCount >= 2, "MinImageCount must be at least 2");
-        ImGui_ImplVulkanH_CreateOrResizeWindow(g_Instance, g_PhysicalDevice, g_Device, wd, g_QueueFamily,
-            nullptr, width, height, g_MinImageCount);
+        ImGui_ImplVulkanH_CreateOrResizeWindow(g_Instance, g_PhysicalDevice, g_Device, wd, g_QueueFamily, nullptr, width, height, g_MinImageCount);
     }
 
     VkInstance Application::GetInstance()
@@ -651,7 +650,6 @@ namespace Grafix
             result = vkBeginCommandBuffer(commandBuffer, &info);
             GF_ASSERT(result == VK_SUCCESS, "Failed to begin command buffer!");
         }
-
         return commandBuffer;
     }
 
@@ -682,7 +680,7 @@ namespace Grafix
         result = vkQueueSubmit(g_Queue, 1, &endInfo, fence);
         GF_ASSERT(result == VK_SUCCESS, "Cannot submit to queue!");
 
-        result = vkWaitForFences(g_Device, 1, &fence, VK_TRUE, 100);
+        result = vkWaitForFences(g_Device, 1, &fence, VK_TRUE, timeout);
         GF_ASSERT(result == VK_SUCCESS, "Fence is not ready!");
 
         // Destroy fence
