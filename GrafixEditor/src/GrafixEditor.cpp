@@ -3,24 +3,24 @@
 
 #include "Panels/EditorLayer.h"
 
-class DraftingBoard : public Grafix::Application
+class GrafixEditor : public Grafix::Application
 {
 public:
-    DraftingBoard(const Grafix::AppSpecification& appSpec) :
+    GrafixEditor(const Grafix::AppSpecification& appSpec) :
         Grafix::Application(appSpec)
     {
         PushLayer(new EditorLayer());
     }
 
-    virtual ~DraftingBoard() = default;
+    virtual ~GrafixEditor() = default;
 };
 
 Grafix::Application* Grafix::CreateApplication()
 {
     AppSpecification appSpec;
-    appSpec.Name = "Drafting Board";
+    appSpec.Name = "Grafix Editor";
     appSpec.Width = 1440;
     appSpec.Height = 810;
 
-    return new DraftingBoard(appSpec);
+    return new GrafixEditor(appSpec);
 }

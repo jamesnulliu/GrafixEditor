@@ -14,6 +14,7 @@ IncludeDir = {}
 IncludeDir["ImGui"] = "Grafix/vendor/imgui"
 IncludeDir["GLFW"] = "Grafix/vendor/glfw/include"
 IncludeDir["Vulkan"] = "%{VULKAN}/Include"
+IncludeDir["glm"] = "Grafix/vendor/glm"
 
 Library = {}
 Library["Vulkan"] = "%{VULKAN}/Lib/vulkan-1.lib"
@@ -43,7 +44,9 @@ project "Grafix"
     files
     {
         "%{prj.name}/src/**.h",
-        "%{prj.name}/src/**.cpp"
+        "%{prj.name}/src/**.cpp",
+        "%{prj.name}/vendor/glm/glm/**.hpp",
+        "%{prj.name}/vendor/glm/glm/**.inl"
     }
 
     includedirs
@@ -52,7 +55,8 @@ project "Grafix"
         "%{prj.name}/vendor/spdlog/include",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.GLFW}",
-        "%{IncludeDir.Vulkan}"
+        "%{IncludeDir.Vulkan}",
+        "%{IncludeDir.glm}"
     }
 
     links
@@ -104,7 +108,8 @@ project "GrafixEditor"
         "Grafix/vendor/spdlog/include",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.GLFW}",
-        "%{IncludeDir.Vulkan}"
+        "%{IncludeDir.Vulkan}",
+        "%{IncludeDir.glm}"
     }
 
     links { "Grafix" }

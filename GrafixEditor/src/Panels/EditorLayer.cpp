@@ -61,13 +61,21 @@ void EditorLayer::OnImGuiRender()
         }
 
         ImGui::Begin("Tools");
+        {
+            if (ImGui::Button("Line"))
+            {
+                GF_INFO("Button \"Line\" pressed");
+            }
+        }
         ImGui::End(); // Tools
 
         ImGui::Begin("Viewport");
         {
             m_ViewportWidth = ImGui::GetContentRegionAvail().x;
             m_ViewportHeight = ImGui::GetContentRegionAvail().y;
-            GF_INFO("DraftingBoard: Viewport ({0}, {1})", m_ViewportWidth, m_ViewportHeight);
+            ////GF_INFO("Grafix Editor: Viewport ({0}, {1})", m_ViewportWidth, m_ViewportHeight);
+
+            ////Grafix::Image image(m_ViewportWidth, m_ViewportHeight, Grafix::ImageFormat::RGBA);
         }
         ImGui::End(); // Viewport
 

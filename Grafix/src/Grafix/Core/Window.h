@@ -1,32 +1,39 @@
 #pragma once
 
 #include <string>
-#include <memory>
+#include <vector>
+
+struct GLFWwindow;
 
 namespace Grafix
 {
     class Window
     {
     public:
-        virtual ~Window() = default;
+        Window(const std::string& title, uint32_t width, uint32_t height);
+        ~Window();
 
-        virtual const std::string& GetTitle() const = 0;
-        virtual uint32_t GetWidth() const = 0;
-        virtual uint32_t GetHeight() const = 0;
+        void OnUpdate() {}
 
-        virtual void OnUpdate() = 0;
+        const std::string& GetTitle() const { return m_Data.Title; }
+        uint32_t GetWidth() const { return m_Data.Width; }
+        uint32_t GetHeight() const { return m_Data.Height; }
 
-        virtual void* GetNativeWindow() const = 0;
+        bool ShouldClose() const;
+
+        GLFWwindow* GetHandle() const { return m_Handle; }
 
         ////void SetEventCallback(std::function<void()>()) {}
-
-        static std::unique_ptr<Window> Create(const std::string& title, uint32_t width, uint32_t height);
     protected:
+        GLFWwindow* m_Handle = nullptr;
+
         struct WindowData
         {
             std::string Title;
             uint32_t Width;
             uint32_t Height;
         };
+
+        WindowData m_Data{};
     };
 }

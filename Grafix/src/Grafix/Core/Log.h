@@ -18,7 +18,6 @@ namespace Grafix
 // Using macros to log
 
 #define GF_TRACE(...) ::Grafix::Log::GetLogger()->trace(__VA_ARGS__);
-#define GF_DEBUG(...) ::Grafix::Log::GetLogger()->debug(__VA_ARGS__);
 #define GF_INFO(...) ::Grafix::Log::GetLogger()->info(__VA_ARGS__);
 #define GF_WARN(...) ::Grafix::Log::GetLogger()->warn(__VA_ARGS__);
 #define GF_ERROR(...) ::Grafix::Log::GetLogger()->error(__VA_ARGS__);

@@ -1,15 +1,47 @@
 #include "pch.h"
 #include "Window.h"
-#include "Platform/WindowsWindow.h"
+
+#include <GLFW/glfw3.h>
 
 namespace Grafix
 {
-    std::unique_ptr<Window> Window::Create(const std::string& title, uint32_t width, uint32_t height)
+    static bool s_WindowCreated = false;
+
+    static void GLFWErrorCallback(int error, const char* description)
     {
-#ifdef GF_WINDOWS
-        return std::make_unique<WindowsWindow>(title, width, height);
-#else // GF_WINDOWS
-#    error "The platform is currently not supported!"
-#endif // GF_WINDOWS
+        GF_ERROR("Glfw Error {0}: {1}", error, description);
+    }
+
+    Window::Window(const std::string& title, uint32_t width, uint32_t height)
+    {
+        m_Data.Title = title;
+        m_Data.Width = width;
+        m_Data.Height = height;
+
+        if (s_WindowCreated == false)
+        {
+            int success = glfwInit();
+            GF_ASSERT(success, "Could not initalize GLFW!");
+            glfwSetErrorCallback(GLFWErrorCallback);
+        }
+
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+        m_Handle = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+
+        s_WindowCreated = true;
+    }
+
+    Window::~Window()
+    {
+        glfwDestroyWindow(m_Handle);
+        glfwTerminate();
+
+        s_WindowCreated = false;
+    }
+
+    bool Window::ShouldClose() const
+    {
+        return (bool)glfwWindowShouldClose(m_Handle);
     }
 }

@@ -14,8 +14,5 @@ namespace Grafix
         virtual void OnDetach() override;
 
         void SetThemeColor();
-
-        void Begin();
-        void End();
     };
 }
