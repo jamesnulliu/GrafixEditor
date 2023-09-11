@@ -5,6 +5,8 @@
 #include "Window.h"
 #include "Grafix/ImGui/ImGuiLayer.h"
 
+#include "Grafix/Utils/Stopwatch.h"
+
 #include <string>
 #include <memory>
 #include <functional>
@@ -32,6 +34,8 @@ namespace Grafix
         void Close() { m_IsRunning = false; }
 
         inline static Application& Get() { return *s_AppInstance; }
+
+        inline float GetFPS() const { return m_FPS; }
 
         // Window
         inline Window& GetWindow() { return *m_Window; }
@@ -91,6 +95,9 @@ namespace Grafix
 
         std::vector<Layer*> m_LayerStack;
         ImGuiLayer* m_ImGuiLayer;
+
+        Stopwatch m_Stopwatch;
+        float m_FPS;
     };
 
     // Define the function in your own application.

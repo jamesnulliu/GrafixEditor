@@ -222,6 +222,7 @@ namespace Grafix
         // Main loop
         while (!m_Window->ShouldClose() && m_IsRunning)
         {
+            m_Stopwatch.Reset();
             // Poll and handle events (inputs, window resize, etc.)
             // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
             // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
@@ -284,6 +285,9 @@ namespace Grafix
             // Present Main Platform Window
             if (!minimized)
                 FramePresent();
+
+            m_Stopwatch.Stop();
+            m_FPS = 1.0f / m_Stopwatch.GetSeconds();
         }
     }
 

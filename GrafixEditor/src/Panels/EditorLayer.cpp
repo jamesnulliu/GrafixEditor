@@ -4,15 +4,10 @@
 #include <imgui.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <algorithm>
-
-static uint32_t RGBAToUint32(const glm::vec4& color)
+void EditorLayer::Render(Grafix::Scene& scene)
 {
-    uint8_t r = (uint8_t)(color.r * 255.0f);
-    uint8_t g = (uint8_t)(color.g * 255.0f);
-    uint8_t b = (uint8_t)(color.b * 255.0f);
-    uint8_t a = (uint8_t)(color.a * 255.0f);
-    return (a << 24) | (b << 16) | (g << 8) | r;
+    m_Renderer.OnResize(m_ViewportWidth, m_ViewportHeight);
+    m_Renderer.Render(scene);
 }
 
 void EditorLayer::OnImGuiRender()
@@ -57,7 +52,7 @@ void EditorLayer::OnImGuiRender()
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
         }
 
-        ImGui::ShowDemoWindow();
+        ////ImGui::ShowDemoWindow();
 
         // Create menu bar
         if (ImGui::BeginMenuBar())
@@ -75,10 +70,6 @@ void EditorLayer::OnImGuiRender()
 
         ImGui::Begin("Tools");
         {
-            if (ImGui::Button("Line"))
-            {
-                GF_INFO("Button pressed: Line");
-            }
         }
         ImGui::End(); // Tools
 
@@ -87,60 +78,49 @@ void EditorLayer::OnImGuiRender()
             m_ViewportWidth = (uint32_t)ImGui::GetContentRegionAvail().x;
             m_ViewportHeight = (uint32_t)ImGui::GetContentRegionAvail().y;
 
-            if (m_FinalImage)
+            auto image = m_Renderer.GetImage();
+            if (image)
             {
-                ImGui::Image(m_FinalImage->GetDescriptorSet(),
-                    { (float)m_FinalImage->GetWidth(), (float)m_FinalImage->GetHeight() },
+                ImGui::Image(image->GetDescriptorSet(),
+                    { (float)image->GetWidth(), (float)image->GetHeight() },
                     ImVec2(0, 1), ImVec2(1, 0)
                 );
             }
+
+            Render(m_Scene);
         }
         ImGui::End(); // Viewport
 
-        if (m_FinalImage)
-        {
-            if (m_FinalImage->GetWidth() == m_ViewportWidth && m_FinalImage->GetHeight() == m_ViewportHeight)
-            {
-                // Skip
-            } else
-            {
-                m_FinalImage->Resize(m_ViewportWidth, m_ViewportHeight);
-                GF_INFO("Image resized: {0}x{1}", m_FinalImage->GetWidth(), m_FinalImage->GetHeight());
-            }
-        } else
-        {
-            m_FinalImage = std::make_shared<Grafix::Image>(m_ViewportWidth, m_ViewportHeight, Grafix::ImageFormat::RGBA);
-        }
-
-        delete[] m_Pixels;
-        m_Pixels = new uint32_t[m_ViewportWidth * m_ViewportHeight];
-
-        for (uint32_t y = 0; y < m_ViewportHeight; y++)
-        {
-            for (uint32_t x = 0; x < m_ViewportWidth; x++)
-            {
-                m_Pixels[y * m_ViewportWidth + x] = RGBAToUint32(glm::vec4(m_BackgroundColor, 1.0f));
-            }
-        }
-
-        for (uint32_t y = 200; y < std::min(300, (int)m_ViewportHeight); ++y)
-        {
-            for (uint32_t x = 200; x < std::min(300, (int)m_ViewportWidth); ++x)
-            {
-                m_Pixels[y * m_ViewportWidth + x] = RGBAToUint32(glm::vec4(m_SquareColor, 1.0f));
-            }
-        }
-
-        m_FinalImage->SetPiexels(m_Pixels);
-
         ImGui::Begin("Settings");
         {
-            ImGui::ColorEdit3("Square Color", glm::value_ptr(m_SquareColor));
-            ImGui::ColorEdit3("Background Color", glm::value_ptr(m_BackgroundColor));
+            ImGui::Text("FPS: %d", (uint32_t)Grafix::Application::Get().GetFPS());
+            ImGui::Separator();
+
+            ImGui::Text("Background");
+            ImGui::ColorEdit3("Color", glm::value_ptr(m_Scene.GetBackgroundColor()));
+            ImGui::Separator();
+
+            for (int i = 0; i < m_Scene.GetRectangles().size(); ++i)
+            {
+                auto& rect = m_Scene.GetRectangles()[i];
+
+                ImGui::PushID(i);
+
+                ImGui::Text("Rectangle");
+                ImGui::DragFloat2("Position", glm::value_ptr(rect.Position), 2.0f, -2000.0f, 2000.0f);
+                ImGui::DragFloat("Width", &rect.Width, 2.0f, 0.0f, 2000.f);
+                ImGui::DragFloat("Height", &rect.Height, 2.0f, 0.0f, 2000.f);
+                ImGui::ColorEdit3("Color", glm::value_ptr(rect.Color));
+
+                ImGui::PopID();
+                ImGui::Separator();
+            }
         }
         ImGui::End(); // Settings
 
         ImGui::Begin("Entities");
+        {
+        }
         ImGui::End(); // Entities
     }
 
