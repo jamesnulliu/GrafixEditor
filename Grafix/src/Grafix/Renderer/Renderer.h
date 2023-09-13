@@ -22,5 +22,8 @@ namespace Grafix
         uint32_t* m_Pixels = nullptr;
 
         Scene* m_ActiveScene = nullptr;
+
+        std::vector<uint32_t> m_HorizontalIters;
+        std::vector<uint32_t> m_VerticalIters;
     };
 }

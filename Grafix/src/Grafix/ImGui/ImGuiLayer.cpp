@@ -1,10 +1,12 @@
 #include "pch.h"
 #include "ImGuiLayer.h"
+
 #include "Grafix/Core/Application.h"
 
 void CheckVkResult(VkResult result);
 
 void FrameRender(ImDrawData* draw_data);
+void SetupRendererBackends();
 
 namespace Grafix
 {
@@ -23,10 +25,40 @@ namespace Grafix
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
         SetThemeColor();
+
+        SetupRendererBackends();
     }
 
     void ImGuiLayer::OnDetach()
     {
+        ImGui_ImplVulkan_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+    }
+
+    void ImGuiLayer::BeginFrame()
+    {
+        ImGui_ImplVulkan_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+    }
+
+    void ImGuiLayer::EndFrame()
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        bool minimized = Application::Get().IsMinimized();
+
+        ImGui::Render();
+
+        if (!minimized)
+            FrameRender(ImGui::GetDrawData());
+
+        // Update and Render additional Platform Windows
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+        }
     }
 
     void ImGuiLayer::SetThemeColor()

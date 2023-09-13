@@ -46,6 +46,6 @@ namespace Grafix
         std::vector<Rectangle>& GetRectangles() { return m_Rectangles; }
     private:
         std::vector<Rectangle> m_Rectangles;
-        glm::vec3 m_BackgroundColor{ 0.873f, 0.702f, 0.428f };
+        glm::vec3 m_BackgroundColor{ 0.761f, 0.755f, 0.698f };
     };
 }

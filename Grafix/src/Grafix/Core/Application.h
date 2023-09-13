@@ -11,8 +11,6 @@
 #include <memory>
 #include <functional>
 
-struct ImGui_ImplVulkanH_Window;
-
 namespace Grafix
 {
     struct AppSpecification
@@ -31,9 +29,12 @@ namespace Grafix
         void Run();
 
         void PushLayer(Layer* layer);
-        void Close() { m_IsRunning = false; }
+        void Close() { m_Running = false; }
 
         inline static Application& Get() { return *s_AppInstance; }
+
+        inline bool IsMinimized() { return m_Minimized; }
+        inline ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer; }
 
         inline float GetFPS() const { return m_FPS; }
 
@@ -45,24 +46,24 @@ namespace Grafix
         static VkInstance GetInstance();
         static VkPhysicalDevice GetPhysicalDevice();
         static VkDevice GetDevice();
-        static VkCommandBuffer GetCommandBuffer();
-        static void FlushCommandBuffer(VkCommandBuffer commandBuffer);
-        static void SubmitResourceFree(std::function<void()>&& func);
         ////static uint32_t GetQueueFamily();
         ////static VkQueue GetQueue();
         ////static VkSurfaceKHR GetSurface();
         ////static VkDescriptorPool GetDescriptorPool();
-        ////static VkAllocationCallbacks* GetAllocator();
         ////static VkPipelineCache GetPipelineCache();
         ////static VkDebugReportCallbackEXT GetDebugReport();
         ////static ImGui_ImplVulkanH_Window& GetWindowData();
         ////static uint32_t GetMinImageCount();
 
-    private:
-        void Init(const AppSpecification& appSpec);
-        void Shutdown();
+        static VkCommandBuffer GetCommandBuffer();
+        static void FlushCommandBuffer(VkCommandBuffer commandBuffer);
+        static void SubmitResourceFree(std::function<void()>&& func);
 
+    private:
         // Vulkan
+        void InitVulkan();
+        void CleanupVulkan();
+
         void CreateVkInstance();
         void SelectPhysicalDevice();
         void SelectGraphicsQueueFamily();
@@ -71,25 +72,10 @@ namespace Grafix
         void CreateDescriptorPool();
         void CreateFramebuffers();
     private:
-        bool m_IsRunning = true;
+        bool m_Running = true;
+        bool m_Minimized = false;
 
         static Application* s_AppInstance;
-
-        ////// Vulkan Data
-        ////static VkInstance g_Instance;
-        ////static VkPhysicalDevice g_PhysicalDevice;
-        ////static VkDevice g_Device;
-        ////static uint32_t g_QueueFamily;
-        ////static VkQueue g_Queue;
-        ////static VkSurfaceKHR g_Surface;
-        ////static VkDescriptorPool g_DescriptorPool;
-        ////static VkAllocationCallbacks* g_Allocator;
-        ////static VkPipelineCache g_PipelineCache;
-        ////static VkDebugReportCallbackEXT g_DebugReport;
-
-        ////static ImGui_ImplVulkanH_Window g_WindowData;
-        ////static uint32_t g_MinImageCount;
-        ////static bool g_SwapChainRebuild = false;
 
         std::unique_ptr<Window> m_Window;
 

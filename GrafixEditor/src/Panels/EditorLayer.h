@@ -14,6 +14,7 @@ public:
     virtual void OnImGuiRender() override;
 private:
     uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
+    bool m_ViewportFocused = false, m_ViewportHovered = false;
 
     Grafix::Scene m_Scene;
 

@@ -1,7 +1,11 @@
 #include "pch.h"
 #include "Window.h"
 
+#include "Application.h"
+
 #include <GLFW/glfw3.h>
+
+void FramePresent();
 
 namespace Grafix
 {
@@ -38,6 +42,14 @@ namespace Grafix
         glfwTerminate();
 
         s_WindowCreated = false;
+    }
+
+    void Window::OnUpdate()
+    {
+        glfwPollEvents();
+
+        if (Application::Get().IsMinimized() == false)
+            FramePresent();
     }
 
     bool Window::ShouldClose() const

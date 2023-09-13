@@ -11,9 +11,7 @@ namespace Grafix
         Allocate();
 
         if (data)
-        {
             SetPiexels(data);
-        }
     }
 
     Image::~Image()
@@ -31,31 +29,29 @@ namespace Grafix
         if (!m_UploadBuffer)
         {
             // Create the Upload Buffer
-            {
-                VkBufferCreateInfo bufferInfo{};
-                bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-                bufferInfo.size = uploadSize;
-                bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-                bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            VkBufferCreateInfo bufferInfo{};
+            bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+            bufferInfo.size = uploadSize;
+            bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+            bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-                result = vkCreateBuffer(device, &bufferInfo, nullptr, &m_UploadBuffer);
-                GF_ASSERT(result == VK_SUCCESS, "Cannot create buffer for image!");
+            result = vkCreateBuffer(device, &bufferInfo, nullptr, &m_UploadBuffer);
+            GF_ASSERT(result == VK_SUCCESS, "Cannot create buffer for image!");
 
-                VkMemoryRequirements req;
-                vkGetBufferMemoryRequirements(device, m_UploadBuffer, &req);
-                m_AlignedSize = (uint64_t)req.size;
+            VkMemoryRequirements req;
+            vkGetBufferMemoryRequirements(device, m_UploadBuffer, &req);
+            m_AlignedSize = (uint64_t)req.size;
 
-                VkMemoryAllocateInfo alloc_info{};
-                alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-                alloc_info.allocationSize = req.size;
-                alloc_info.memoryTypeIndex = GetMemoryType(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, req.memoryTypeBits);
+            VkMemoryAllocateInfo alloc_info{};
+            alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            alloc_info.allocationSize = req.size;
+            alloc_info.memoryTypeIndex = GetMemoryType(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, req.memoryTypeBits);
 
-                result = vkAllocateMemory(device, &alloc_info, nullptr, &m_UploadBufferMemory);
-                GF_ASSERT(result == VK_SUCCESS, "Failed to allocate memory for image!");
+            result = vkAllocateMemory(device, &alloc_info, nullptr, &m_UploadBufferMemory);
+            GF_ASSERT(result == VK_SUCCESS, "Failed to allocate memory for image!");
 
-                result = vkBindBufferMemory(device, m_UploadBuffer, m_UploadBufferMemory, 0);
-                GF_ASSERT(result == VK_SUCCESS, "Failed to bind buffer memory for image!");
-            }
+            result = vkBindBufferMemory(device, m_UploadBuffer, m_UploadBufferMemory, 0);
+            GF_ASSERT(result == VK_SUCCESS, "Failed to bind buffer memory for image!");
         }
 
         // Upload to Buffer
@@ -121,7 +117,8 @@ namespace Grafix
 
     void Image::Resize(uint32_t width, uint32_t height)
     {
-        if (m_Width == width && m_Height == height) { return; }
+        if (m_Width == width && m_Height == height)
+            return;
 
         m_Width = width, m_Height = height;
 
@@ -260,9 +257,7 @@ namespace Grafix
         for (uint32_t i = 0; i < memProps.memoryTypeCount; i++)
         {
             if ((memProps.memoryTypes[i].propertyFlags & properties) == properties && typeBits & (1 << i))
-            {
                 return i;
-            }
         }
 
         return 0xffffffff;

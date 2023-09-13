@@ -13,7 +13,7 @@ namespace Grafix
         Window(const std::string& title, uint32_t width, uint32_t height);
         ~Window();
 
-        void OnUpdate() {}
+        void OnUpdate();
 
         const std::string& GetTitle() const { return m_Data.Title; }
         uint32_t GetWidth() const { return m_Data.Width; }

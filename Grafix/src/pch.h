@@ -10,6 +10,7 @@
 #include <ranges>
 #include <algorithm>
 #include <functional>
+#include <execution>
 
 #include <string>
 #include <sstream>
@@ -35,3 +36,4 @@
 // ---- Grafix ----
 
 #include "Grafix/Core/Core.h"
+#include "Grafix/Core/Log.h"
