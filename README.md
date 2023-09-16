@@ -41,7 +41,7 @@ namespace MyNamespace
     {
         char CharVariable = 'a';
         float FloatVariable = 1.0f;
-    }
+    };
 
     class MyClass
     {
@@ -49,7 +49,7 @@ namespace MyNamespace
         void MyMemberFunction(int theParameter);
     private:
         int m_PrivateMemberVariable;
-    }
+    };
 }
 ```
 * 命名空间、类名、函数名、结构体名以及结构体成员名采用**Pascal命名法**，即所有单词首字母大写，例如：MyNamespace
