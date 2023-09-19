@@ -44,6 +44,7 @@ namespace Grafix
             for (int i = std::max((int)rect.Position.x, 0); i < std::min((int)(rect.Position.x + rect.Width), (int)m_Image->GetWidth()); ++i)
                 horizontalIters.push_back(i);
 
+            // image[x][y] = image[x + width * y]
             std::for_each(std::execution::par, verticalIters.begin(), verticalIters.end(), [&](uint32_t y) {
                 std::for_each(std::execution::par, horizontalIters.begin(), horizontalIters.end(), [&, y](uint32_t x) {
                     m_Pixels[y * m_Image->GetWidth() + x] = RGBAToUint32(glm::vec4(rect.Color, 1.0f));
@@ -55,6 +56,11 @@ namespace Grafix
                     m_Pixels[y * m_Image->GetWidth() + x] = RGBAToUint32(glm::vec4(rect.Color, 1.0f));
 #endif // Multithreading
         }
+
+        //for (Entity* entity : m_Scene.GetEntities())
+        //{
+        //    entity->Render();
+        //}
 
         m_Image->SetPiexels(m_Pixels);
     }
