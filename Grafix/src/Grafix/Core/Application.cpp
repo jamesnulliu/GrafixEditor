@@ -1,6 +1,10 @@
 #include "pch.h"
 #include "Application.h"
 
+#include "Core.h"
+#include "Grafix/Events/ApplicationEvent.h"
+#include "Grafix/Renderer/Renderer.h"
+
 // This code is adapted from ImGui/examples/example_glfw_vulkan/main.cpp and Walnut by The Cherno.
 
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
@@ -241,7 +245,11 @@ namespace Grafix
 
     Application::Application(const AppSpecification& appSpec)
     {
+        GF_ASSERT(s_AppInstance == nullptr, "Application already exists!");
+        s_AppInstance = this;
+
         m_Window = std::make_unique<Window>(appSpec.Name, appSpec.Width, appSpec.Height);
+        m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
         // TODO: Remove this
         s_WindowHandle = m_Window->GetHandle();
 
@@ -249,8 +257,6 @@ namespace Grafix
 
         m_ImGuiLayer = new ImGuiLayer();
         PushLayer(m_ImGuiLayer);
-
-        s_AppInstance = this;
     }
 
     Application::~Application()
@@ -271,6 +277,23 @@ namespace Grafix
         layer->OnAttach();
     }
 
+    void Application::OnEvent(Event& e)
+    {
+        GF_TRACE("{0}", e.ToString());
+
+        EventDispatcher dispatcher(e);
+        dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
+        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
+
+        for (auto iter = m_LayerStack.end(); iter != m_LayerStack.begin();)
+        {
+            if (e.Handled)
+                break;
+
+            (*--iter)->OnEvent(e);
+        }
+    }
+
     void Application::Run()
     {
         m_Running = true;
@@ -289,9 +312,10 @@ namespace Grafix
                     layer->OnUpdate();
             }
 
-            // Resize swap chain?
             if (g_SwapChainRebuild)
             {
+                // Resize swap chain
+
                 int width, height;
                 glfwGetFramebufferSize(m_Window->GetHandle(), &width, &height);
                 m_Minimized = width == 0 || height == 0;
@@ -323,6 +347,26 @@ namespace Grafix
             m_Stopwatch.Stop();
             m_FPS = 1.0f / m_Stopwatch.GetSeconds();
         }
+    }
+
+    bool Application::OnWindowClose(WindowCloseEvent& e)
+    {
+        m_Running = false;
+        return true;
+    }
+
+    bool Application::OnWindowResize(WindowResizeEvent& e)
+    {
+        if (e.GetWidth() == 0 || e.GetHeight() == 0)
+        {
+            m_Minimized = true;
+            return false;
+        }
+
+        m_Minimized = false;
+        ////Renderer::OnResize(e.GetWidth(), e.GetHeight());
+
+        return true;
     }
 
     // ------------------------------------------------

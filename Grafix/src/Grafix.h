@@ -5,6 +5,11 @@
 
 #include "Grafix/Core/Log.h"
 
+#include "Grafix/Events/Event.h"
+#include "Grafix/Events/ApplicationEvent.h"
+#include "Grafix/Events/KeyEvent.h"
+#include "Grafix/Events/MouseEvent.h"
+
 #include "Grafix/Input/Input.h"
 
 #include "Grafix/Renderer/Image.h"

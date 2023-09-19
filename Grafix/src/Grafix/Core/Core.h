@@ -11,3 +11,7 @@
 #else  // GF_ENABLE_ASSERTS
 #    define GF_ASSERT(x, ...)
 #endif  // GF_ENABLE_ASSERTS
+
+#define BIT(x) (1 << x)
+
+#define BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)

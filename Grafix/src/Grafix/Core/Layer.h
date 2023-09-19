@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Grafix/Events/Event.h"
+
 #include <string>
 
 namespace Grafix
@@ -19,6 +21,7 @@ namespace Grafix
         virtual void OnDetach() {}
         virtual void OnUpdate() {}
         virtual void OnImGuiRender() {}
+        virtual void OnEvent(Event& e) {}
     protected:
         std::string m_Name;
     };

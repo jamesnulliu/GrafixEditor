@@ -3,6 +3,8 @@
 #include <vulkan/vulkan.h>
 
 #include "Window.h"
+
+#include "Grafix/Events/ApplicationEvent.h"
 #include "Grafix/ImGui/ImGuiLayer.h"
 
 #include "Grafix/Utils/Stopwatch.h"
@@ -31,6 +33,8 @@ namespace Grafix
         void PushLayer(Layer* layer);
         void Close() { m_Running = false; }
 
+        void OnEvent(Event& e);
+
         inline static Application& Get() { return *s_AppInstance; }
 
         inline bool IsMinimized() { return m_Minimized; }
@@ -46,19 +50,13 @@ namespace Grafix
         static VkInstance GetInstance();
         static VkPhysicalDevice GetPhysicalDevice();
         static VkDevice GetDevice();
-        ////static uint32_t GetQueueFamily();
-        ////static VkQueue GetQueue();
-        ////static VkSurfaceKHR GetSurface();
-        ////static VkDescriptorPool GetDescriptorPool();
-        ////static VkPipelineCache GetPipelineCache();
-        ////static VkDebugReportCallbackEXT GetDebugReport();
-        ////static ImGui_ImplVulkanH_Window& GetWindowData();
-        ////static uint32_t GetMinImageCount();
 
         static VkCommandBuffer GetCommandBuffer();
         static void FlushCommandBuffer(VkCommandBuffer commandBuffer);
         static void SubmitResourceFree(std::function<void()>&& func);
-
+    private:
+        bool OnWindowClose(WindowCloseEvent& e);
+        bool OnWindowResize(WindowResizeEvent& e);
     private:
         // Vulkan
         void InitVulkan();

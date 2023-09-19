@@ -5,7 +5,7 @@ namespace Grafix
 {
     // Adapted from glfw3.h
 
-    enum class MouseButton : uint8_t
+    enum class MouseButton : uint16_t
     {
         Button1 = 0,
         Button2 = 1,
