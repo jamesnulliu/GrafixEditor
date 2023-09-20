@@ -338,7 +338,7 @@ namespace Grafix
             m_ImGuiLayer->BeginFrame();
             {
                 for (Layer* layer : m_LayerStack)
-                    layer->OnImGuiRender();
+                    layer->OnUIRender();
             }
             m_ImGuiLayer->EndFrame();
 

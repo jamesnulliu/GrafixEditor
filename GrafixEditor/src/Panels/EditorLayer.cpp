@@ -1,5 +1,7 @@
 #include "EditorLayer.h"
 
+#include "Grafix/Entities/Line.h"
+
 static uint32_t s_MaxViewportSize = 16384;
 
 EditorLayer::EditorLayer() : Layer("Editor Layer") {}
@@ -12,21 +14,13 @@ void EditorLayer::Render(Grafix::Scene& scene)
 
 void EditorLayer::OnUpdate()
 {
-    auto [mx, my] = ImGui::GetMousePos();
-    mx -= m_ViewportBounds[0].x;
-    my -= m_ViewportBounds[0].y;
-    glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
-    my = viewportSize.y - my;
-    m_MouseXInViewport = (int)mx, m_MouseYInViewport = (int)my;
+    CalculateMousePosInViewport();
 
-    if (m_MouseXInViewport >= 0 && m_MouseXInViewport < (int)m_ViewportWidth
-        && m_MouseYInViewport >= 0 && m_MouseYInViewport < (int)m_ViewportHeight)
-    {
-        ////GF_INFO("Mouse inside viewport: ({0}, {1})", mouseX, mouseY);
-    }
+    // Update scene
+    m_Scene.OnUpdate();
 }
 
-void EditorLayer::OnImGuiRender()
+void EditorLayer::OnUIRender()
 {
     static ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None;
 
@@ -68,10 +62,10 @@ void EditorLayer::OnImGuiRender()
             ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), dockspaceFlags);
         }
 
-        ////ImGui::ShowDemoWindow();
         UI_MenuBar();
         UI_Viewport();
         UI_Toolbar();
+        UI_Information();
         UI_Settings();
         UI_Entities();
     }
@@ -157,6 +151,21 @@ bool EditorLayer::OnMouseButtonPressed(Grafix::MouseButtonPressedEvent& e)
     }
 
     return false;
+}
+
+void EditorLayer::CalculateMousePosInViewport()
+{
+    auto [mx, my] = ImGui::GetMousePos();
+    m_MousePosInViewport = glm::i32vec2{
+        (int)(mx - m_ViewportBounds[0].x),
+        (int)(m_ViewportBounds[1].y - my)
+    };
+}
+
+bool EditorLayer::IsMouseInViewport() const
+{
+    return m_MousePosInViewport.x >= 0 && m_MousePosInViewport.x < (int)m_ViewportWidth
+        && m_MousePosInViewport.y >= 0 && m_MousePosInViewport.y < (int)m_ViewportHeight;
 }
 
 void EditorLayer::UI_MenuBar()
@@ -269,35 +278,24 @@ void EditorLayer::UI_Toolbar()
     ImGui::End();
 }
 
+void EditorLayer::UI_Information()
+{
+    ImGui::Begin("Information");
+    {
+        ImGui::Text("FPS: %d", (uint32_t)Grafix::Application::Get().GetFPS());
+
+        if (IsMouseInViewport())
+            ImGui::Text("Mouse Position: (%d, %d)", m_MousePosInViewport.x, m_MousePosInViewport.y);
+        else
+            ImGui::Text("Mouse Position:");
+    }
+    ImGui::End();
+}
+
 void EditorLayer::UI_Settings()
 {
     ImGui::Begin("Settings");
     {
-        ImGui::Text("FPS: %d", (uint32_t)Grafix::Application::Get().GetFPS());
-        ImGui::Separator();
-
-        ImGui::Text("Background");
-        ImGui::PushID(0);
-        ImGui::ColorEdit3("Color", glm::value_ptr(m_Scene.GetBackgroundColor()));
-        ImGui::PopID();
-        ImGui::Separator();
-
-        ////for (int i = 0; i < m_Scene.GetRectangles().size(); ++i)
-        ////{
-        ////    auto& rect = m_Scene.GetRectangles()[i];
-
-        ////    ImGui::PushID(i);
-
-        ////    ImGui::Text("Rectangle");
-        ////    ImGui::DragFloat2("Position", glm::value_ptr(rect.Position), 2.0f, -2000.0f, 2000.0f);
-        ////    ImGui::DragFloat("Width", &rect.Width, 2.0f, 0.0f, 2000.0f);
-        ////    ImGui::DragFloat("Height", &rect.Height, 2.0f, 0.0f, 2000.0f);
-        ////    ImGui::ColorEdit3("Color", glm::value_ptr(rect.Color));
-
-        ////    ImGui::PopID();
-        ////    ImGui::Separator();
-        ////}
-
         switch (m_ToolState)
         {
         case ToolState::Move:
@@ -305,13 +303,21 @@ void EditorLayer::UI_Settings()
             break;
         }case ToolState::Line:
         {
-            ImGui::Text("Line");
-            ImGui::PushID(1);
-            ////ImGui::DragFloat2("Begin", glm::value_ptr(m_Line.BeginPos), 2.0f, -2000.0f, 2000.0f);
-            ////ImGui::DragFloat2("End", glm::value_ptr(m_Line.EndPos), 2.0f, -2000.0f, 2000.0f);
-            ImGui::DragFloat("Width", &m_Line.Width, 1.0f, 0.0f, 1000.0f);
-            ImGui::ColorEdit4("Color", glm::value_ptr(m_Line.Color));
-            ImGui::PopID();
+            for (int i = 0; i < m_Scene.GetLines().size(); ++i)
+            {
+                Grafix::Line& line = m_Scene.GetLines()[i];
+
+                ImGui::PushID(i);
+                {
+                    ImGui::Text(line.GetName().c_str());
+                    ImGui::DragFloat2("Point A", glm::value_ptr(line.GetPoint0()), 1.0f, -1000.0f, 1000.0f);
+                    ImGui::DragFloat2("Point B", glm::value_ptr(line.GetPoint1()), 1.0f, -1000.0f, 1000.0f);
+                    ImGui::DragFloat("Width", &line.GetWidth(), 1.0f, 0.0f, 1000.0f);
+                    ImGui::ColorEdit4("Color", glm::value_ptr(line.GetSpriteRenderer().Color));
+                }
+                ImGui::PopID();
+                ImGui::Separator();
+            }
             break;
         }
         }
@@ -323,6 +329,10 @@ void EditorLayer::UI_Entities()
 {
     ImGui::Begin("Entities");
     {
+        if (ImGui::Button("Add Line"))
+        {
+            m_Scene.AddLine();
+        }
     }
     ImGui::End();
 }

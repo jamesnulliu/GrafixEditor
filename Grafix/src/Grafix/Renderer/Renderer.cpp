@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Renderer.h"
 
+#include "Grafix/Entities/Algorithm.h"
+
 #define Multithreading 1
 
 static uint32_t RGBAToUint32(const glm::vec4& color)
@@ -18,11 +20,13 @@ namespace Grafix
     {
         m_ActiveScene = &scene;
 
+        GraphicsAlgorithm::UpdatePixelData(m_Pixels, m_Image->GetWidth(), m_Image->GetHeight());
+
         // Background
 #if Multithreading == 1
         std::for_each(std::execution::par, m_VerticalIters.begin(), m_VerticalIters.end(), [this](uint32_t y) {
             std::for_each(std::execution::par, m_HorizontalIters.begin(), m_HorizontalIters.end(), [this, y](uint32_t x) {
-                m_Pixels[y * m_Image->GetWidth() + x] = RGBAToUint32(glm::vec4(m_ActiveScene->GetBackgroundColor(), 1.0f));
+                m_Pixels[y * m_Image->GetWidth() + x] = RGBAToUint32(m_ActiveScene->GetBackgroundColor());
                 });
             });
 #else // Multithreading
@@ -31,36 +35,13 @@ namespace Grafix
                 m_Pixels[y * m_Image->GetWidth() + x] = RGBAToUint32(glm::vec4(m_ActiveScene->GetBackgroundColor(), 1.0f));
 #endif // Multithreading
 
-        // Square
-        for (auto& rect : m_ActiveScene->GetRectangles())
-        {
-            std::vector<uint32_t> horizontalIters;
-            std::vector<uint32_t> verticalIters;
+        for (Line& line : m_ActiveScene->GetLines())
+            DrawLine(line.GetPoint0(), line.GetPoint1(), line.GetWidth(), line.GetSpriteRenderer().Color, line.GetStyle());
 
-#if Multithreading == 1
-            for (int i = std::max((int)rect.Position.y, 0); i < std::min((int)(rect.Position.y + rect.Height), (int)m_Image->GetHeight()); ++i)
-                verticalIters.push_back(i);
-
-            for (int i = std::max((int)rect.Position.x, 0); i < std::min((int)(rect.Position.x + rect.Width), (int)m_Image->GetWidth()); ++i)
-                horizontalIters.push_back(i);
-
-            // image[x][y] = image[x + width * y]
-            std::for_each(std::execution::par, verticalIters.begin(), verticalIters.end(), [&](uint32_t y) {
-                std::for_each(std::execution::par, horizontalIters.begin(), horizontalIters.end(), [&, y](uint32_t x) {
-                    m_Pixels[y * m_Image->GetWidth() + x] = RGBAToUint32(glm::vec4(rect.Color, 1.0f));
-                    });
-                });
-#else // Multithreading
-            for (int y = std::max((int)rect.Position.y, 0); y < std::min((int)(rect.Position.y + rect.Height), (int)m_Image->GetHeight()); ++y)
-                for (int x = std::max((int)rect.Position.x, 0); x < std::min((int)(rect.Position.x + rect.Width), (int)m_Image->GetWidth()); ++x)
-                    m_Pixels[y * m_Image->GetWidth() + x] = RGBAToUint32(glm::vec4(rect.Color, 1.0f));
-#endif // Multithreading
-        }
-
-        //for (Entity* entity : m_Scene.GetEntities())
-        //{
-        //    entity->Render();
-        //}
+        ////DrawLine({ 400.0f, 300.0f }, { 600.0f, 500.0f }, 1.0f, { 0.8f, 0.2f, 0.3f, 1.0f }, LineStyle::Solid);
+        ////DrawLine({ 800.0f, 300.0f }, { 200.0f, 700.0f }, 1.0f, { 0.4f, 0.6f, 0.6f, 1.0f }, LineStyle::Solid);
+        ////DrawLine({ 100.0f, 200.0f }, { 500.0f, 200.0f }, 1.0f, { 0.9f, 0.9f, 0.6f, 1.0f }, LineStyle::Solid);
+        ////DrawLine({ 700.0f, 100.0f }, { 700.0f, 400.0f }, 1.0f, { 0.9f, 0.2f, 0.8f, 1.0f }, LineStyle::Solid);
 
         m_Image->SetPiexels(m_Pixels);
     }
@@ -94,5 +75,20 @@ namespace Grafix
         for (uint32_t i = 0; i < newHeight; i++)
             m_VerticalIters[i] = i;
 #endif
+    }
+
+    void Renderer::DrawRectangle(const glm::vec3& position, const glm::vec2& size, float rotation, const glm::vec4& color)
+    {
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
+            * glm::rotate(glm::mat4(1.0f), glm::radians(rotation), { 0.0f, 0.0f, 1.0f })
+            * glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+
+        DrawRectangle(transform, color);
+    }
+
+    void Renderer::DrawLine(const glm::vec2& p0, const glm::vec2& p1, float width, const glm::vec4& color, LineStyle style)
+    {
+        LineAlgorithm::Bresenham(p0, p1, RGBAToUint32(color), style);
+        ////LineAlgorithm::Midpoint(p0, p1, RGBAToUint32(color), style);
     }
 }
