@@ -21,9 +21,10 @@ namespace Grafix
         glm::vec3& GetPoint1() { return m_Point1; }
 
         float& GetWidth() { return m_Width; }
-        LineStyle& GetStyle() { return m_Style; }
-
         SpriteRendererComponent& GetSpriteRenderer() { return m_SpriteRenderer; }
+
+        LineStyle& GetStyle() { return m_Style; }
+        uint32_t& GetDashLength() { return m_DashLength; }
     protected:
         glm::vec3 m_Point0{ 0.0f, 0.0f, 0.0f };
         glm::vec3 m_Point1{ 0.0f, 0.0f, 0.0f };
@@ -32,5 +33,6 @@ namespace Grafix
         LineStyle m_Style = LineStyle::Solid;
 
         SpriteRendererComponent m_SpriteRenderer;
+        uint32_t m_DashLength = 5.0f;
     };
 }

@@ -1,6 +1,7 @@
 #include "EditorLayer.h"
 
 #include "Grafix/Entities/Line.h"
+#include "Grafix/Entities/Circle.h"
 
 static uint32_t s_MaxViewportSize = 16384;
 
@@ -310,10 +311,33 @@ void EditorLayer::UI_Settings()
                 ImGui::PushID(i);
                 {
                     ImGui::Text(line.GetName().c_str());
-                    ImGui::DragFloat2("Point A", glm::value_ptr(line.GetPoint0()), 1.0f, -1000.0f, 1000.0f);
-                    ImGui::DragFloat2("Point B", glm::value_ptr(line.GetPoint1()), 1.0f, -1000.0f, 1000.0f);
-                    ImGui::DragFloat("Width", &line.GetWidth(), 1.0f, 0.0f, 1000.0f);
+                    ImGui::DragFloat2("Point A", glm::value_ptr(line.GetPoint0()), 1.0f, -2000.0f, 2000.0f);
+                    ImGui::DragFloat2("Point B", glm::value_ptr(line.GetPoint1()), 1.0f, -2000.0f, 2000.0f);
+                    ImGui::SliderFloat("Width", &line.GetWidth(), 0.0f, 1000.0f);
                     ImGui::ColorEdit4("Color", glm::value_ptr(line.GetSpriteRenderer().Color));
+                    if (line.GetStyle() == Grafix::LineStyle::Dashed)
+                        ImGui::SliderInt("Dash Length", &(int&)(line.GetDashLength()), 1, 100);
+                }
+                ImGui::PopID();
+                ImGui::Separator();
+            }
+            break;
+        }
+        case ToolState::Circle:
+        {
+            for (int i = 0; i < m_Scene.GetCircles().size(); ++i)
+            {
+                Grafix::Circle& circle = m_Scene.GetCircles()[i];
+
+                ImGui::PushID(i);
+                {
+                    ImGui::Text(circle.GetName().c_str());
+                    ImGui::DragFloat2("Center", glm::value_ptr(circle.GetCenter()), 1.0f, -2000.0f, 2000.0f);
+                    ImGui::SliderFloat("Radius", &circle.GetRadius(), 0.0f, 2000.0f);
+                    ////ImGui::SliderFloat("Width", &line.GetWidth(), 0.0f, 1000.0f);
+                    ImGui::ColorEdit4("Color", glm::value_ptr(circle.GetSpriteRenderer().Color));
+                    /*if (line.GetStyle() == Grafix::LineStyle::Dashed)
+                        ImGui::SliderInt("Dash Length", &(int&)(line.GetDashLength()), 1, 100);*/
                 }
                 ImGui::PopID();
                 ImGui::Separator();
@@ -332,6 +356,13 @@ void EditorLayer::UI_Entities()
         if (ImGui::Button("Add Line"))
         {
             m_Scene.AddLine();
+            m_ToolState = ToolState::Line;
+        }
+
+        if (ImGui::Button("Add Circle"))
+        {
+            m_Scene.AddCircle();
+            m_ToolState = ToolState::Circle;
         }
     }
     ImGui::End();

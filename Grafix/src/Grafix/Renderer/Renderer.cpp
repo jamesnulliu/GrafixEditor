@@ -36,12 +36,10 @@ namespace Grafix
 #endif // Multithreading
 
         for (Line& line : m_ActiveScene->GetLines())
-            DrawLine(line.GetPoint0(), line.GetPoint1(), line.GetWidth(), line.GetSpriteRenderer().Color, line.GetStyle());
+            DrawLine(line.GetPoint0(), line.GetPoint1(), line.GetWidth(), line.GetSpriteRenderer().Color, line.GetStyle(), line.GetDashLength());
 
-        ////DrawLine({ 400.0f, 300.0f }, { 600.0f, 500.0f }, 1.0f, { 0.8f, 0.2f, 0.3f, 1.0f }, LineStyle::Solid);
-        ////DrawLine({ 800.0f, 300.0f }, { 200.0f, 700.0f }, 1.0f, { 0.4f, 0.6f, 0.6f, 1.0f }, LineStyle::Solid);
-        ////DrawLine({ 100.0f, 200.0f }, { 500.0f, 200.0f }, 1.0f, { 0.9f, 0.9f, 0.6f, 1.0f }, LineStyle::Solid);
-        ////DrawLine({ 700.0f, 100.0f }, { 700.0f, 400.0f }, 1.0f, { 0.9f, 0.2f, 0.8f, 1.0f }, LineStyle::Solid);
+        for (Circle& circle : m_ActiveScene->GetCircles())
+            DrawCircle(circle.GetCenter(), circle.GetRadius(), circle.GetSpriteRenderer().Color);
 
         m_Image->SetPiexels(m_Pixels);
     }
@@ -86,9 +84,15 @@ namespace Grafix
         DrawRectangle(transform, color);
     }
 
-    void Renderer::DrawLine(const glm::vec2& p0, const glm::vec2& p1, float width, const glm::vec4& color, LineStyle style)
+    void Renderer::DrawLine(const glm::vec2& p0, const glm::vec2& p1, float width, const glm::vec4& color, LineStyle style, uint32_t dashLength)
     {
-        LineAlgorithm::Bresenham(p0, p1, RGBAToUint32(color), style);
-        ////LineAlgorithm::Midpoint(p0, p1, RGBAToUint32(color), style);
+        ////LineAlgorithm::Bresenham(p0, p1, RGBAToUint32(color), style, dashLength);
+        LineAlgorithm::Midpoint(p0, p1, RGBAToUint32(color), style, dashLength);
+    }
+
+    void Renderer::DrawCircle(const glm::vec2& center, float radius, const glm::vec4& color)
+    {
+        ////LineAlgorithm::Bresenham(p0, p1, RGBAToUint32(color), style, dashLength);
+        CircleAlgorithm::Midpoint(center, radius, RGBAToUint32(color));
     }
 }

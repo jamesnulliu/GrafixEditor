@@ -13,7 +13,19 @@ namespace Grafix
         s_Height = height;
     }
 
-    void LineAlgorithm::Midpoint(glm::vec2 p0, glm::vec2 p1, uint32_t color, LineStyle style)
+    inline void GraphicsAlgorithm::SetPixel(int x, int y, uint32_t color)
+    {
+        if (x < 0 || x >= s_Width || y < 0 || y >= s_Height)
+            return;
+
+        s_PixelData[(uint32_t)x + (uint32_t)y * s_Width] = color;
+    }
+
+    // ------------------------------------------------
+    // --------------------- Line ---------------------
+    // ------------------------------------------------
+
+    void LineAlgorithm::Midpoint(glm::vec2 p0, glm::vec2 p1, uint32_t color, LineStyle style, uint32_t dashLength)
     {
         // If |k| > 1, swap x and y.
         bool XYSwapped = false;
@@ -35,16 +47,26 @@ namespace Grafix
         int d = (a << 1) + b;
         int d1 = a << 1, d2 = (a + b) << 1;
 
-        uint32_t x = (uint32_t)p0.x;
-        uint32_t y = (uint32_t)p0.y;
+        int gapLength = std::max((int)dashLength / 5, 1);
+        std::vector<uint8_t> bitString(dashLength + gapLength, 0);
+        for (int i = 0; i < dashLength; ++i)
+            bitString[i] |= 1;
 
-        while (x < (uint32_t)p1.x)
+        int x = (int)p0.x;
+        int y = (int)p0.y;
+
+        int count = 0;
+        while (x < (int)p1.x)
         {
             // Set pixel
-            if (XYSwapped)
-                s_PixelData[x * s_Width + y] = color;
-            else
-                s_PixelData[y * s_Width + x] = color;
+            if (style == LineStyle::Solid ||
+                (style == LineStyle::Dashed && bitString[count % bitString.size()]))
+            {
+                if (XYSwapped)
+                    SetPixel(y, x, color);
+                else
+                    SetPixel(x, y, color);
+            }
 
             if (d < 0)
                 y += sy, d += d2;
@@ -52,10 +74,11 @@ namespace Grafix
                 d += d1;
 
             ++x;
+            ++count;
         }
     }
 
-    void LineAlgorithm::Bresenham(glm::vec2 p0, glm::vec2 p1, uint32_t color, LineStyle style)
+    void LineAlgorithm::Bresenham(glm::vec2 p0, glm::vec2 p1, uint32_t color, LineStyle style, uint32_t dashLength)
     {
         // If |k| > 1, swap x and y.
         bool XYSwapped = false;
@@ -75,16 +98,25 @@ namespace Grafix
         int sy = dy > 0 ? 1 : -1;
         dy = std::abs(dy);
 
-        uint32_t x = (uint32_t)p0.x;
-        uint32_t y = (uint32_t)p0.y;
+        int gapLength = std::max((int)dashLength / 5, 1);
+        std::vector<uint8_t> bitString(dashLength + gapLength, 0);
+        for (int i = 0; i < dashLength; ++i)
+            bitString[i] |= 1;
+
+        int x = (int)p0.x;
+        int y = (int)p0.y;
 
         for (int i = 0; i <= dx; i++)
         {
-            // Set pixel
-            if (XYSwapped)
-                s_PixelData[x * s_Width + y] = color;
-            else
-                s_PixelData[y * s_Width + x] = color;
+            if (style == LineStyle::Solid ||
+                (style == LineStyle::Dashed && bitString[i % bitString.size()]))
+            {
+                // Set pixel
+                if (XYSwapped)
+                    SetPixel(y, x, color);
+                else
+                    SetPixel(x, y, color);
+            }
 
             ++x;
             e += dy << 1;
@@ -95,5 +127,45 @@ namespace Grafix
                 e -= dx << 1;
             }
         }
+    }
+
+    // ------------------------------------------------
+    // -------------------- Circle --------------------
+    // ------------------------------------------------
+
+    void CircleAlgorithm::Midpoint(const glm::vec2& center, float radius, uint32_t color)
+    {
+        int centerX = (int)center.x;
+        int centerY = (int)center.y;
+
+        int x = 0, y = (int)radius;
+        int e = 1 - (int)radius;
+
+        while (x <= y)
+        {
+            SetCirclePixels(centerX, centerY, x, y, color);
+
+            if (e < 0)
+            {
+                e += 2 * x + 3;
+            } else
+            {
+                e += 2 * (x - y) + 5;
+                y--;
+            }
+            x++;
+        }
+    }
+
+    void CircleAlgorithm::SetCirclePixels(int centerX, int centerY, int x, int y, uint32_t color)
+    {
+        SetPixel(centerX + x, centerY + y, color);
+        SetPixel(centerX - x, centerY + y, color);
+        SetPixel(centerX - x, centerY - y, color);
+        SetPixel(centerX + x, centerY - y, color);
+        SetPixel(centerX + y, centerY + x, color);
+        SetPixel(centerX - y, centerY + x, color);
+        SetPixel(centerX - y, centerY - x, color);
+        SetPixel(centerX + y, centerY - x, color);
     }
 }
