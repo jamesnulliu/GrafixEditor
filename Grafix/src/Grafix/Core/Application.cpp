@@ -14,7 +14,7 @@
 #    pragma comment(lib, "legacy_stdio_definitions")
 #endif
 
-#define IMGUI_UNLIMITED_FRAME_RATE 0
+#define IMGUI_UNLIMITED_FRAME_RATE 1
 
 #ifdef GF_DEBUG
 #    define VULKAN_DEBUG_REPORT
