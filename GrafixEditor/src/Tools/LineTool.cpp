@@ -19,6 +19,9 @@ namespace Grafix
             {
                 glm::vec3 mousePos{ Input::GetMousePosition(), 0.0f };
                 m_LineSpec.P1 = mousePos;
+            } else
+            {
+                m_IsDrawing = false;
             }
         }
     }

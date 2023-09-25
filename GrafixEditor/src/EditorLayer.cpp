@@ -28,6 +28,7 @@ namespace Grafix
         CalculateMousePosInViewport();
 
         ////m_EditorCamera.OnUpdate();
+
         m_EditorScene->OnUpdate();
     }
 
@@ -81,6 +82,8 @@ namespace Grafix
             UI_Entities();
         }
         ImGui::End(); // DockSpace
+
+        Render();
     }
 
     void EditorLayer::OnEvent(Event& e)
@@ -118,6 +121,9 @@ namespace Grafix
         {
             m_ToolState = ToolState::Line;
             GF_INFO("Switched to line tool.");
+
+            auto& line = m_ActiveScene->CreateEntity("Line");
+
             break;
         }
         case Key::A:
@@ -222,8 +228,6 @@ namespace Grafix
                         ImVec2(0, 1), ImVec2(1, 0)
                     );
                 }
-
-                Render();
             }
         }
         ImGui::End();

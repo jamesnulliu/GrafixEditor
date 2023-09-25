@@ -6,6 +6,14 @@ namespace Grafix
 {
     class EditorLayer final : public Layer
     {
+    private:
+        enum class ToolState : uint8_t
+        {
+            Move = 0,
+            Pen,
+            Line, Arc,
+            Rectangle, Circle
+        };
     public:
         EditorLayer();
         virtual ~EditorLayer() = default;
@@ -42,13 +50,6 @@ namespace Grafix
         EditorCamera m_EditorCamera;
         Renderer m_Renderer;
 
-        enum class ToolState : uint8_t
-        {
-            Move = 0,
-            Pen,
-            Line, Arc,
-            Rectangle, Circle
-        };
         ToolState m_ToolState = ToolState::Move;
     };
 }

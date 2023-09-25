@@ -16,14 +16,10 @@ namespace Grafix
 
     void Scene::RemoveEntity(Entity entity)
     {
-        for (int i = 0; i < m_Entities.size(); i++)
-        {
-            if (m_Entities[i] == entity)
-            {
-                m_Entities.erase(m_Entities.begin() + i);
-                break;
-            }
-        }
+        auto it = std::find(m_Entities.begin(), m_Entities.end(), entity);
+
+        if (it != m_Entities.end())
+            m_Entities.erase(it);
     }
 
     void Scene::OnUpdate()
