@@ -92,6 +92,18 @@ namespace Grafix
         CircleRendererComponent(const CircleRendererComponent&) = default;
     };
 
+    struct ArcRendererComponent final : public Component
+    {
+        glm::vec3 Center{ 300.0f, 300.0f, 0.0f };
+        glm::vec3 BeginPoint{ 350.0f, 350.0f, 0.0f };
+        glm::vec3 ThirdPoint{ 400.0f, 300.0f, 0.0f };
+        bool Choice = false;
+        glm::vec4 Color{ 0.8f, 0.8f, 0.8f, 1.0f };
+        
+        ArcRendererComponent() = default;
+		ArcRendererComponent(const ArcRendererComponent&) = default;
+    };
+
     // NOT DONE
     struct PolygonRendererComponent final : public Component
     {
