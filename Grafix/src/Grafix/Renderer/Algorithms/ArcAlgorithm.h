@@ -19,4 +19,11 @@ namespace Grafix
         static glm::vec3 GetLineArguments(const glm::vec2& beginPoint, const glm::vec2& endPoint);
         static bool IsPointAboveLine(int x,int y, const glm::vec3& lineArguments);
     };
+
+    class Test
+    {
+    public:
+        Test();
+        ~Test();
+    };
 }
