@@ -18,6 +18,7 @@ namespace Grafix
 
         void DrawLine(const LineRendererComponent& line);
         void DrawCircle(const CircleRendererComponent& circle);
+        void DrawArc(const ArcRendererComponent& arc);
     private:
         std::shared_ptr<Image> m_Image = nullptr;
         uint32_t* m_Pixels = nullptr;

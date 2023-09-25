@@ -330,6 +330,22 @@ namespace Grafix
                     ImGui::PopID();
                     ImGui::Separator();
                 }
+
+                if (auto arc = entity->GetComponent<ArcRendererComponent>())
+                {
+                    ImGui::PushID(i);
+                    {
+                        ImGui::DragFloat2("Center", glm::value_ptr(arc->Center), 1.0f, -2000.0f, 2000.0f);
+                        ImGui::DragFloat2("Begin Point", glm::value_ptr(arc->BeginPoint), 1.0f, -2000.0f, 2000.0f);
+                        ImGui::DragFloat2("Third Point", glm::value_ptr(arc->ThirdPoint), 1.0f, -2000.0f, 2000.0f);
+
+                        ImGui::Checkbox("Clockwise", &arc->Choice);
+
+                        ImGui::ColorEdit4("Color", glm::value_ptr(arc->Color));
+                    }
+                    ImGui::PopID();
+                    ImGui::Separator();
+                }
             }
         }
         ImGui::End();
@@ -361,6 +377,14 @@ namespace Grafix
 
                 auto& circle = m_ActiveScene->CreateEntity("Circle");
                 circle.AddComponent<CircleRendererComponent>();
+            }
+
+            if (ImGui::Button("Add Arc"))
+            {
+				m_ToolState = ToolState::Arc;
+
+				auto& arc = m_ActiveScene->CreateEntity("Arc");
+				arc.AddComponent<ArcRendererComponent>();
             }
         }
         ImGui::End();
