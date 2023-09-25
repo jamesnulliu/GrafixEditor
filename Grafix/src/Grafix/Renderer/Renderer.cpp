@@ -4,6 +4,7 @@
 #include "Algorithms/GraphicsAlgorithm.h"
 #include "Algorithms/LineAlgorithm.h"
 #include "Algorithms/CircleAlgorithm.h"
+#include "Algorithms/ArcAlgorithm.h"
 
 static uint32_t RGBAToUint32(const glm::vec4& color)
 {
@@ -35,6 +36,9 @@ namespace Grafix
 
             if (auto circle = entity.GetComponent<CircleRendererComponent>())
                 DrawCircle(*circle);
+
+            if(auto arc = entity.GetComponent<ArcRendererComponent>())
+				DrawArc(*arc);
         }
 
         m_Image->SetPiexels(m_Pixels);
@@ -73,4 +77,9 @@ namespace Grafix
 
         CircleAlgorithm::Draw(center, circle.Radius, circle.Color);
     }
+
+    void Renderer::DrawArc(const ArcRendererComponent& arc)
+	{
+		ArcAlgorithm::Draw(arc.Center, arc.BeginPoint, arc.ThirdPoint, arc.Color, arc.Choice);
+	}
 }

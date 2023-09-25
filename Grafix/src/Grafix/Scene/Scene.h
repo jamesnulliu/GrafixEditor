@@ -31,6 +31,7 @@ namespace Grafix
         glm::vec3 m_BgColor{ 0.235f, 0.257f, 0.270f };
 
         std::vector<Entity> m_Entities{};
+        Entity* m_SelectedEntity = nullptr;
 
         glm::mat4 m_CameraTransform{ 1.0f };
     };
