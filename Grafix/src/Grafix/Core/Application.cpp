@@ -279,8 +279,6 @@ namespace Grafix
 
     void Application::OnEvent(Event& e)
     {
-        GF_TRACE("{0}", e.ToString());
-
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
@@ -703,4 +701,4 @@ namespace Grafix
     {
         s_ResourceFreeQueue[s_CurrentFrameIndex].emplace_back(func);
     }
-}
+    }

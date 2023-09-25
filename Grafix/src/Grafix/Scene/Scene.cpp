@@ -3,34 +3,39 @@
 
 namespace Grafix
 {
-    Scene::Scene()
+    Entity& Scene::CreateEntity(const std::string& name)
     {
+        m_Entities.emplace_back();
+
+        Entity& entity = m_Entities.back();
+        auto& tag = entity.AddComponent<TagComponent>(name)->Tag;
+        tag = name.empty() ? "Entity" : name;
+
+        return m_Entities.back();
     }
 
-    void Scene::AddLine()
+    void Scene::RemoveEntity(Entity entity)
     {
-        Grafix::Line line("Line");
-        line.GetPoint0() = glm::vec3{ 420.0f, 300.0f, 0.0f };
-        line.GetPoint1() = glm::vec3{ 616.0f, 401.0f, 0.0f };
-        line.GetSpriteRenderer().Color = glm::vec4{ 0.677f, 0.773f, 0.789f, 1.0f };
-        line.GetWidth() = 1.0f;
-        line.GetStyle() = Grafix::LineStyle::Dashed;
-        line.GetDashLength() = 1.0f;
-
-        m_Lines.push_back(line);
-    }
-
-    void Scene::AddCircle()
-    {
-        Grafix::Circle circle("Circle");
-        circle.GetCenter() = glm::vec3{ 420.0f, 300.0f, 0.0f };
-        circle.GetRadius() = 100.0f;
-        circle.GetSpriteRenderer().Color = glm::vec4{ 0.677f, 0.773f, 0.789f, 1.0f };
-
-        m_Circles.push_back(circle);
+        for (int i = 0; i < m_Entities.size(); i++)
+        {
+            if (m_Entities[i] == entity)
+            {
+                m_Entities.erase(m_Entities.begin() + i);
+                break;
+            }
+        }
     }
 
     void Scene::OnUpdate()
     {
+    }
+
+    void Scene::OnUpdateEditor()
+    {
+    }
+
+    void Scene::Clear()
+    {
+        m_Entities.clear();
     }
 }

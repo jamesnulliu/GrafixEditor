@@ -1,26 +1,29 @@
 #include "Grafix.h"
 #include "Grafix/Core/EntryPoint.h"
 
-#include "Panels/EditorLayer.h"
+#include "EditorLayer.h"
 
-class GrafixEditor : public Grafix::Application
+namespace Grafix
 {
-public:
-    GrafixEditor(const Grafix::AppSpecification& appSpec) :
-        Grafix::Application(appSpec)
+    class GrafixEditor : public Application
     {
-        PushLayer(new EditorLayer());
+    public:
+        GrafixEditor(const AppSpecification& appSpec) :
+            Application(appSpec)
+        {
+            PushLayer(new EditorLayer());
+        }
+
+        virtual ~GrafixEditor() = default;
+    };
+
+    Application* CreateApplication()
+    {
+        AppSpecification appSpec;
+        appSpec.Name = "Grafix Editor";
+        appSpec.Width = 1440;
+        appSpec.Height = 810;
+
+        return new GrafixEditor(appSpec);
     }
-
-    virtual ~GrafixEditor() = default;
-};
-
-Grafix::Application* Grafix::CreateApplication()
-{
-    AppSpecification appSpec;
-    appSpec.Name = "Grafix Editor";
-    appSpec.Width = 1440;
-    appSpec.Height = 810;
-
-    return new GrafixEditor(appSpec);
 }

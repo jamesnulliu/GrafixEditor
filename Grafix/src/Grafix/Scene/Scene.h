@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Grafix/Entities/Line.h"
-#include "Grafix/Entities/Circle.h"
+#include "Entity.h"
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -11,24 +10,28 @@ namespace Grafix
     class Scene
     {
     public:
-        Scene();
+        Scene() = default;
         ~Scene() = default;
 
-        void AddLine();
-        void AddCircle();
+        Entity& CreateEntity(const std::string& name);
 
-        std::vector<Line>& GetLines() { return m_Lines; }
-        const std::vector<Line>& GetLines() const { return m_Lines; }
-        std::vector<Circle>& GetCircles() { return m_Circles; }
-        const std::vector<Circle>& GetCircles() const { return m_Circles; }
+        std::vector<Entity>& GetEntities() { return m_Entities; }
+        const std::vector<Entity>& GetEntities() const { return m_Entities; }
+
+        void RemoveEntity(Entity entity);
 
         void OnUpdate();
+        void OnUpdateEditor();
 
-        glm::vec4& GetBackgroundColor() { return m_BgColor; }
-        const glm::vec4& GetBackgroundColor() const { return m_BgColor; }
+        void Clear();
+
+        glm::vec3& GetBackgroundColor() { return m_BgColor; }
+        const glm::vec3& GetBackgroundColor() const { return m_BgColor; }
     private:
-        glm::vec4 m_BgColor{ 0.163f, 0.197f, 0.206f, 1.0f };
-        std::vector<Line> m_Lines;
-        std::vector<Circle> m_Circles;
+        glm::vec3 m_BgColor{ 0.235f, 0.257f, 0.270f };
+
+        std::vector<Entity> m_Entities{};
+
+        glm::mat4 m_CameraTransform{ 1.0f };
     };
 }

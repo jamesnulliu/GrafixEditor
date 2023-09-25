@@ -8,13 +8,11 @@ namespace Grafix
     {
     public:
         Camera() = default;
+        Camera(const glm::mat4& projectionMatrix) : m_ProjectionMatrix(projectionMatrix) {}
         virtual ~Camera() = default;
 
-        void OnUpdate();
-
+        const glm::mat4& GetProjectionMatrix() const { return m_ProjectionMatrix; }
     protected:
-        glm::vec3 m_Position{ 0.0f, 0.0f, 0.0f };
-
-        float m_MoveSpeed = 10.0f;
+        glm::mat4 m_ProjectionMatrix = glm::mat4(1.0f);
     };
 }
