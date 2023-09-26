@@ -3,8 +3,11 @@
 
 namespace Grafix
 {
-    void CircleAlgorithm::Draw(const glm::vec2& center, float radius, const glm::vec4& color)
+    void CircleAlgorithm::Draw(const glm::vec2& center, float radius, const glm::vec4& color, bool showAux)
     {
+        if (showAux)
+            DrawAuxCross(center);
+
         Midpoint(center, radius, color);
     }
 

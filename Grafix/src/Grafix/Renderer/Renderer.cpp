@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "Renderer.h"
 
-#include "Algorithms/GraphicsAlgorithm.h"
 #include "Algorithms/LineAlgorithm.h"
 #include "Algorithms/CircleAlgorithm.h"
 #include "Algorithms/ArcAlgorithm.h"
@@ -37,8 +36,8 @@ namespace Grafix
             if (auto circle = entity.GetComponent<CircleRendererComponent>())
                 DrawCircle(*circle);
 
-            if(auto arc = entity.GetComponent<ArcRendererComponent>())
-				DrawArc(*arc);
+            if (auto arc = entity.GetComponent<ArcRendererComponent>())
+                DrawArc(*arc);
         }
 
         m_Image->SetPiexels(m_Pixels);
@@ -75,11 +74,11 @@ namespace Grafix
     {
         glm::vec4 center = m_ActiveCamera->GetViewProjectionMatrix() * glm::vec4(circle.Center, 1.0f);
 
-        CircleAlgorithm::Draw(center, circle.Radius, circle.Color);
+        CircleAlgorithm::Draw(center, circle.Radius, circle.Color, circle.ShowAux);
     }
 
     void Renderer::DrawArc(const ArcRendererComponent& arc)
-	{
-		ArcAlgorithm::Draw(arc.Center, arc.BeginPoint, arc.ThirdPoint, arc.Color, arc.Choice);
-	}
+    {
+        ArcAlgorithm::Draw(arc.Center, arc.Radius, arc.Angle1, arc.Angle2, arc.Major, arc.Color, arc.ShowAux);
+    }
 }

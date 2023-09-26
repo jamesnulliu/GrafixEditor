@@ -312,12 +312,15 @@ namespace Grafix
                 {
                     ImGui::PushID(i);
                     {
+                        ImGui::Text(entity->GetComponent<TagComponent>()->Tag.c_str());
+
                         ImGui::DragFloat2("Point A", glm::value_ptr(line->P0), 1.0f, -2000.0f, 2000.0f);
                         ImGui::DragFloat2("Point B", glm::value_ptr(line->P1), 1.0f, -2000.0f, 2000.0f);
                         ImGui::SliderFloat("Width", &line->Width, 0.0f, 1000.0f);
-                        ImGui::ColorEdit4("Color", glm::value_ptr(line->Color));
                         if (line->Style == LineStyle::Dashed)
                             ImGui::SliderFloat("Dash Length", &line->DashLength, 1, 100);
+
+                        ImGui::ColorEdit4("Color", glm::value_ptr(line->Color));
                     }
                     ImGui::PopID();
                     ImGui::Separator();
@@ -327,9 +330,14 @@ namespace Grafix
                 {
                     ImGui::PushID(i);
                     {
+                        ImGui::Text(entity->GetComponent<TagComponent>()->Tag.c_str());
+
                         ImGui::DragFloat2("Center", glm::value_ptr(circle->Center), 1.0f, -2000.0f, 2000.0f);
                         ImGui::SliderFloat("Radius", &circle->Radius, 0.0f, 2000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
+
                         ImGui::ColorEdit4("Color", glm::value_ptr(circle->Color));
+
+                        ImGui::Checkbox("Show Aux", &circle->ShowAux);
                     }
                     ImGui::PopID();
                     ImGui::Separator();
@@ -339,13 +347,17 @@ namespace Grafix
                 {
                     ImGui::PushID(i);
                     {
-                        ImGui::DragFloat2("Center", glm::value_ptr(arc->Center), 1.0f, -2000.0f, 2000.0f);
-                        ImGui::DragFloat2("Begin Point", glm::value_ptr(arc->BeginPoint), 1.0f, -2000.0f, 2000.0f);
-                        ImGui::DragFloat2("Third Point", glm::value_ptr(arc->ThirdPoint), 1.0f, -2000.0f, 2000.0f);
+                        ImGui::Text(entity->GetComponent<TagComponent>()->Tag.c_str());
 
-                        ImGui::Checkbox("Clockwise", &arc->Choice);
+                        ImGui::DragFloat2("Center", glm::value_ptr(arc->Center), 1.0f, -2000.0f, 2000.0f);
+                        ImGui::SliderFloat("Radius", &arc->Radius, 0.0f, 2000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
+                        ImGui::SliderFloat("Angle 1", &arc->Angle1, -2000.0f, 2000.0f);
+                        ImGui::SliderFloat("Angle 2", &arc->Angle2, -2000.0f, 2000.0f);
+                        ImGui::Checkbox("Major", &arc->Major);
 
                         ImGui::ColorEdit4("Color", glm::value_ptr(arc->Color));
+
+                        ImGui::Checkbox("Show Aux", &arc->ShowAux);
                     }
                     ImGui::PopID();
                     ImGui::Separator();
@@ -385,10 +397,10 @@ namespace Grafix
 
             if (ImGui::Button("Add Arc"))
             {
-				m_ToolState = ToolState::Arc;
+                m_ToolState = ToolState::Arc;
 
-				auto& arc = m_ActiveScene->CreateEntity("Arc");
-				arc.AddComponent<ArcRendererComponent>();
+                auto& arc = m_ActiveScene->CreateEntity("Arc");
+                arc.AddComponent<ArcRendererComponent>();
             }
         }
         ImGui::End();

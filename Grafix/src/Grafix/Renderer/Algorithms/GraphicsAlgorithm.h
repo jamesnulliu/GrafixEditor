@@ -13,5 +13,9 @@ namespace Grafix
     protected:
         static void SetPixel(int x, int y, const glm::vec4& color);
         static uint32_t RGBAToUint32(const glm::vec4& color);
+
+        // Auxiliary
+        static glm::vec4 s_AuxColor;
+        static void DrawAuxCross(const glm::vec2& point);
     };
 }

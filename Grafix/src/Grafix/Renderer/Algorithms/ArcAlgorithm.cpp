@@ -1,105 +1,86 @@
 #include "pch.h"
 #include "ArcAlgorithm.h"
 
-namespace Grafix {
-	void ArcAlgorithm::Draw(const glm::vec2& center, const glm::vec2& beginPoint, 
-		const glm::vec2& thirdPoint, const glm::vec4& color, bool majorArc)
-	{
-		SetPixel((int)center.x, (int)center.y, color);
-		SetPixel((int)beginPoint.x, (int)beginPoint.y, color);	
-		SetPixel((int)thirdPoint.x, (int)thirdPoint.y, color);
-		MidPointArc(center, beginPoint, thirdPoint , color, majorArc);
-	}
+#include "LineAlgorithm.h"
+#include "CircleAlgorithm.h"
 
-	// BUG: When three points are on the same line, the arc is not drawn
-	void ArcAlgorithm::MidPointArc(const glm::vec2& center, const glm::vec2& beginPoint, 
-		const glm::vec2 thirdPoint, const glm::vec4& color , bool majorArc) 
-	{
-		int radius = (int)glm::distance(center, beginPoint);
-		glm::vec2 midpoint;
-		midpoint.x = (int)(beginPoint.x + thirdPoint.x) / 2;
-		midpoint.y = (int)(beginPoint.y + thirdPoint.y) / 2;
-		glm::vec3 f1 = GetLineArguments(center, beginPoint);
-		glm::vec3 f2 = GetLineArguments(center, thirdPoint);
-		int centerX = center.x, centerY = center.y;
-		int a = 0, b = radius, e = 1 - radius;
+namespace Grafix
+{
+    void ArcAlgorithm::Draw(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec4& color, bool showAux)
+    {
+        if (showAux)
+            DrawAuxCross(center);
 
-		while (a <= b) 
-		{
-            if (majorArc)
-                SetMajorArcPixels(centerX, centerY, a, b, color, f1 ,f2, midpoint);
-            else
-                SetMinorArcPixels(centerX, centerY, a, b, color, f1, f2, midpoint);
+        if (glm::abs(angle2 - angle1) < 1e-9f)
+            return;
 
-			if (e < 0)
-				e += 2 * a + 3;
-			else 
-			{
-				e += 2 * (a - b) + 5;
-				b--;
-			}
-			a++;
-		}
-	}
+        Midpoint(center, radius, angle1, angle2, major, color);
+    }
 
-	void ArcAlgorithm::SetMajorArcPixels(int centerX, int centerY, int x, int y,
-		const glm::vec4& color, const glm::vec3 f1, const glm::vec3 f2, const glm::vec2& midpoint)
-	{
-		bool position1 = IsPointAboveLine((int)midpoint.x, (int)midpoint.y, f1);
-		bool position2 = IsPointAboveLine((int)midpoint.x, (int)midpoint.y, f2);
-		if (!(IsPointAboveLine(centerX + x, centerY + y, f1) == position1 && IsPointAboveLine(centerX + x, centerY + y, f2) == position2))
-			SetPixel(centerX + x, centerY + y, color);
-		if (!(IsPointAboveLine(centerX + x, centerY - y, f1) == position1 && IsPointAboveLine(centerX + x, centerY - y, f2) == position2))
-			SetPixel(centerX + x, centerY - y, color);
-		if (!(IsPointAboveLine(centerX - x, centerY + y, f1) == position1 && IsPointAboveLine(centerX - x, centerY + y, f2) == position2))
-			SetPixel(centerX - x, centerY + y, color);
-		if (!(IsPointAboveLine(centerX - x, centerY - y, f1) == position1 && IsPointAboveLine(centerX - x, centerY - y, f2) == position2))
-			SetPixel(centerX - x, centerY - y, color);
-		if (!(IsPointAboveLine(centerX + y, centerY + x, f1) == position1 && IsPointAboveLine(centerX + y, centerY + x, f2) == position2))
-			SetPixel(centerX + y, centerY + x, color);
-		if (!(IsPointAboveLine(centerX + y, centerY - x, f1) == position1 && IsPointAboveLine(centerX + y, centerY - x, f2) == position2))
-			SetPixel(centerX + y, centerY - x, color);
-		if (!(IsPointAboveLine(centerX - y, centerY + x, f1) == position1 && IsPointAboveLine(centerX - y, centerY + x, f2) == position2))
-			SetPixel(centerX - y, centerY + x, color);
-		if (!(IsPointAboveLine(centerX - y, centerY - x, f1) == position1 && IsPointAboveLine(centerX - y, centerY - x, f2) == position2))
-			SetPixel(centerX - y, centerY - x, color);			
+    void ArcAlgorithm::Midpoint(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec4& color)
+    {
+        // Restrict angles to 0 <= angle < 360
+        angle1 = glm::mod(angle1, 360.0f);
+        angle2 = glm::mod(angle2, 360.0f);
 
-	}
+        float beginAngle = glm::min(angle1, angle2), endAngle = glm::max(angle1, angle2);
+        if ((!major && endAngle - beginAngle > 180.0f)
+            || (major && endAngle - beginAngle < 180.0f))
+        {
+            std::swap(beginAngle, endAngle);
+            endAngle += 360.0f;  // 0 <= endAngle < 540
+        }
 
-	void ArcAlgorithm::SetMinorArcPixels(int centerX, int centerY, int x, int y,
-		const glm::vec4& color, const glm::vec3 f1,const glm::vec3 f2, const glm::vec2 &midpoint) 
-	{
-		bool position1 = IsPointAboveLine((int)midpoint.x, (int)midpoint.y ,f1);
-		bool position2 = IsPointAboveLine((int)midpoint.x, (int)midpoint.y ,f2);
-		if (IsPointAboveLine(centerX + x, centerY + y, f1) == position1 && IsPointAboveLine(centerX + x, centerY + y, f2) == position2)
-			SetPixel(centerX + x, centerY + y, color);
-		if (IsPointAboveLine(centerX + x, centerY - y, f1) == position1 && IsPointAboveLine(centerX + x, centerY - y, f2) == position2)
-			SetPixel(centerX + x, centerY - y, color);
-		if (IsPointAboveLine(centerX - x, centerY + y, f1) == position1 && IsPointAboveLine(centerX - x, centerY + y, f2) == position2)
-			SetPixel(centerX - x, centerY + y, color);
-		if (IsPointAboveLine(centerX - x, centerY - y, f1) == position1 && IsPointAboveLine(centerX - x, centerY - y, f2) == position2)
-			SetPixel(centerX - x, centerY - y, color);
-		if(IsPointAboveLine(centerX + y, centerY + x, f1) == position1 && IsPointAboveLine(centerX + y, centerY + x, f2) == position2)
-			SetPixel(centerX + y, centerY + x, color);
-        if (IsPointAboveLine(centerX + y, centerY - x, f1) == position1 && IsPointAboveLine(centerX + y, centerY - x, f2) == position2)
-			SetPixel(centerX + y, centerY - x, color);
-		if (IsPointAboveLine(centerX - y, centerY + x, f1) == position1 && IsPointAboveLine(centerX - y, centerY + x, f2) == position2)
-			SetPixel(centerX - y, centerY + x, color);
-		if (IsPointAboveLine(centerX - y, centerY - x, f1) == position1 && IsPointAboveLine(centerX - y, centerY - x, f2) == position2)
-			SetPixel(centerX - y, centerY - x, color);
-	}
+        int a = 0, b = (int)radius, e = 1 - (int)radius;
 
-	glm::vec3 ArcAlgorithm::GetLineArguments(const glm::vec2& beginPoint, const glm::vec2& endPoint)
-	{
-		glm::vec3 arguments;
-		arguments.x = endPoint.y - beginPoint.y;
-		arguments.y = beginPoint.x - endPoint.x;
-		arguments.z = endPoint.x * beginPoint.y - beginPoint.x * endPoint.y;
-		return arguments;
-	}
+        while (a <= b)
+        {
+            SetArcPixels((int)center.x, (int)center.y, a, b, radius, beginAngle, endAngle, color);
 
-	bool ArcAlgorithm::IsPointAboveLine(int x, int y, const glm::vec3& lineArguments) 
-	{
-		return lineArguments.x * x + lineArguments.y * y + lineArguments.z < 0;
-	}
+            if (e < 0)
+            {
+                e += 2 * a + 3;
+            } else
+            {
+                e += 2 * (a - b) + 5;
+                b--;
+            }
+            a++;
+        }
+    }
+
+    void ArcAlgorithm::SetArcPixels(int centerX, int centerY, int x, int y, float radius, float beginAngle, float endAngle, const glm::vec4& color)
+    {
+        if (IsInRange(x, y, beginAngle, endAngle))
+            SetPixel(centerX + x, centerY + y, color);
+        if (IsInRange(y, x, beginAngle, endAngle))
+            SetPixel(centerX + y, centerY + x, color);
+
+        if (IsInRange(-x, y, beginAngle, endAngle))
+            SetPixel(centerX - x, centerY + y, color);
+        if (IsInRange(-y, x, beginAngle, endAngle))
+            SetPixel(centerX - y, centerY + x, color);
+
+        if (IsInRange(-x, -y, beginAngle, endAngle))
+            SetPixel(centerX - x, centerY - y, color);
+        if (IsInRange(-y, -x, beginAngle, endAngle))
+            SetPixel(centerX - y, centerY - x, color);
+
+        if (IsInRange(x, -y, beginAngle, endAngle))
+            SetPixel(centerX + x, centerY - y, color);
+        if (IsInRange(y, -x, beginAngle, endAngle))
+            SetPixel(centerX + y, centerY - x, color);
+    }
+
+    bool ArcAlgorithm::IsInRange(int x, int y, float beginAngle, float endAngle)
+    {
+        float angle = glm::degrees(glm::atan((float)y, (float)x));
+        if (y < 0)
+            angle += 360.0f;
+
+        if (360.0f + angle <= endAngle)
+            angle += 360.0f;
+
+        return angle >= beginAngle && angle <= endAngle;
+    }
 }

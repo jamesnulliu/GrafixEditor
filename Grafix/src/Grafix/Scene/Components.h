@@ -67,8 +67,8 @@ namespace Grafix
 
     struct LineRendererComponent final : public Component
     {
-        glm::vec3 P0{ 200.0f, 300.0f, 0.0f };
-        glm::vec3 P1{ 300.0f, 300.0f, 0.0f };
+        glm::vec3 P0{ 400.0f, 500.0f, 0.0f };
+        glm::vec3 P1{ 500.0f, 500.0f, 0.0f };
 
         glm::vec4 Color{ 0.8f, 0.8f, 0.8f, 1.0f };
 
@@ -83,10 +83,12 @@ namespace Grafix
 
     struct CircleRendererComponent final : public Component
     {
-        glm::vec3 Center{ 250.0f, 300.0f, 0.0f };
-        float Radius = 30.0f;
+        glm::vec3 Center{ 450.0f, 500.0f, 0.0f };
+        float Radius = 50.0f;
 
         glm::vec4 Color{ 0.8f, 0.8f, 0.8f, 1.0f };
+
+        bool ShowAux = false;
 
         CircleRendererComponent() = default;
         CircleRendererComponent(const CircleRendererComponent&) = default;
@@ -94,14 +96,18 @@ namespace Grafix
 
     struct ArcRendererComponent final : public Component
     {
-        glm::vec3 Center{ 300.0f, 300.0f, 0.0f };
-        glm::vec3 BeginPoint{ 350.0f, 350.0f, 0.0f };
-        glm::vec3 ThirdPoint{ 400.0f, 300.0f, 0.0f };
-        bool Choice = false;
+        glm::vec3 Center{ 450.0f, 500.0f, 0.0f };
+        float Radius = 50.0f;
+        float Angle1 = -30.0f;
+        float Angle2 = 60.0f;
+        bool Major = false;
+
         glm::vec4 Color{ 0.8f, 0.8f, 0.8f, 1.0f };
-        
+
+        bool ShowAux = false;
+
         ArcRendererComponent() = default;
-		ArcRendererComponent(const ArcRendererComponent&) = default;
+        ArcRendererComponent(const ArcRendererComponent&) = default;
     };
 
     // NOT DONE
