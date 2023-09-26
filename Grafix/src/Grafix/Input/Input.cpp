@@ -30,11 +30,11 @@ namespace Grafix
         glfwSetInputMode(windowHandle, GLFW_CURSOR, GLFW_CURSOR_NORMAL + (int)mode);
     }
 
-    bool Input::IsKeyPressed(Key keycode)
+    bool Input::IsKeyPressed(Key key)
     {
         GLFWwindow* windowHandle = Application::Get().GetWindow().GetHandle();
 
-        int state = glfwGetKey(windowHandle, (int)keycode);
+        int state = glfwGetKey(windowHandle, (int)key);
         return state == GLFW_PRESS || state == GLFW_REPEAT;
     }
 }

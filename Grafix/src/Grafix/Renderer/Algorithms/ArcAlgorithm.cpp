@@ -6,10 +6,13 @@
 
 namespace Grafix
 {
-    void ArcAlgorithm::Draw(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec4& color, bool showAux)
+    void ArcAlgorithm::Draw(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec4& color, bool showCenter, bool showRadius)
     {
-        if (showAux)
+        if (showCenter)
             DrawAuxCross(center);
+
+        if (showRadius)
+            DrawAuxRadius(center, radius, angle1);
 
         if (glm::abs(angle2 - angle1) < 1e-9f)
             return;
@@ -25,7 +28,7 @@ namespace Grafix
 
         float beginAngle = glm::min(angle1, angle2), endAngle = glm::max(angle1, angle2);
         if ((!major && endAngle - beginAngle > 180.0f)
-            || (major && endAngle - beginAngle < 180.0f))
+            || (major && endAngle - beginAngle <= 180.0f))
         {
             std::swap(beginAngle, endAngle);
             endAngle += 360.0f;  // 0 <= endAngle < 540

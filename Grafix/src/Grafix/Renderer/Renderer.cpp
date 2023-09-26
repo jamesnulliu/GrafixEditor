@@ -64,21 +64,16 @@ namespace Grafix
 
     void Renderer::DrawLine(const LineRendererComponent& line)
     {
-        glm::vec4 p0 = m_ActiveCamera->GetViewProjectionMatrix() * glm::vec4(line.P0, 1.0f);
-        glm::vec4 p1 = m_ActiveCamera->GetViewProjectionMatrix() * glm::vec4(line.P1, 1.0f);
-
-        LineAlgorithm::Draw(p0, p1, line.Color, line.Style, line.DashLength);
+        LineAlgorithm::Draw(line.P0, line.P1, line.Color, line.Style, line.DashLength);
     }
 
     void Renderer::DrawCircle(const CircleRendererComponent& circle)
     {
-        glm::vec4 center = m_ActiveCamera->GetViewProjectionMatrix() * glm::vec4(circle.Center, 1.0f);
-
-        CircleAlgorithm::Draw(center, circle.Radius, circle.Color, circle.ShowAux);
+        CircleAlgorithm::Draw(circle.Center, circle.Radius, circle.Color, circle.ShowCenter);
     }
 
     void Renderer::DrawArc(const ArcRendererComponent& arc)
     {
-        ArcAlgorithm::Draw(arc.Center, arc.Radius, arc.Angle1, arc.Angle2, arc.Major, arc.Color, arc.ShowAux);
+        ArcAlgorithm::Draw(arc.Center, arc.Radius, arc.Angle1, arc.Angle2, arc.Major, arc.Color, arc.ShowCenter, arc.ShowRadius);
     }
 }

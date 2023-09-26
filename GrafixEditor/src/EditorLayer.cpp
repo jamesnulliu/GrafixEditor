@@ -27,6 +27,142 @@ namespace Grafix
     {
         CalculateMousePosInViewport();
 
+        switch (m_ToolState)
+        {
+        case ToolState::Move:
+        {
+            break;
+        }
+        case ToolState::Line:
+        {
+            if (!m_IsDrawing)
+            {
+                if (m_ViewportHovered && Input::IsMouseButtonPressed(MouseButton::Left))
+                {
+                    m_IsDrawing = true;
+
+                    auto& entity = m_ActiveScene->CreateEntity("Line");
+                    auto line = entity.AddComponent<LineRendererComponent>();
+                    line->P0 = { m_MousePosInViewport, 1.0f };
+                    line->P1 = { m_MousePosInViewport, 1.0f };
+                }
+            } else
+            {
+                if (Input::IsMouseButtonPressed(MouseButton::Left))
+                {
+                    auto& entity = m_ActiveScene->GetEntities().back();
+                    auto line = entity.GetComponent<LineRendererComponent>();
+                    line->P1 = { m_MousePosInViewport, 1.0f };
+                } else
+                {
+                    m_IsDrawing = false;
+                }
+            }
+            break;
+        }
+        case ToolState::Arc:
+        {
+            if (!m_IsDrawing)
+            {
+                if (m_ViewportHovered && Input::IsMouseButtonPressed(MouseButton::Left))
+                {
+                    m_IsDrawing = true;
+                    m_RemainingClicks = 2;
+                    m_IsMouseClicked = false;
+
+                    auto& entity = m_ActiveScene->CreateEntity("Arc");
+                    auto arc = entity.AddComponent<ArcRendererComponent>();
+                    arc->Center = { m_MousePosInViewport, 1.0f };
+                    arc->Radius = 0.0f;
+                    arc->ShowCenter = true;
+                    arc->ShowRadius = true;
+                }
+            } else
+            {
+                auto& entity = m_ActiveScene->GetEntities().back();
+                auto arc = entity.GetComponent<ArcRendererComponent>();
+
+                if (m_RemainingClicks == 2)
+                {
+                    if (Input::IsMouseButtonPressed(MouseButton::Left))
+                    {
+                        float radius = glm::distance(arc->Center, glm::vec3(m_MousePosInViewport, 1.0f));
+                        arc->Radius = radius;
+
+                        float dx = m_MousePosInViewport.x - arc->Center.x;
+                        float dy = m_MousePosInViewport.y - arc->Center.y;
+                        float angle = glm::degrees(glm::atan(dy, dx));
+                        arc->Angle1 = angle;
+                        arc->Angle2 = angle;
+                    } else
+                    {
+                        arc->ShowRadius = false;
+                        --m_RemainingClicks;
+                    }
+                } else if (m_RemainingClicks == 1)
+                {
+                    float dx = m_MousePosInViewport.x - arc->Center.x;
+                    float dy = m_MousePosInViewport.y - arc->Center.y;
+                    float angle = glm::degrees(glm::atan(dy, dx));
+                    arc->Angle2 = angle;
+
+                    if (Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl))
+                        arc->Major = true;
+                    else
+                        arc->Major = false;
+
+                    if (m_ViewportHovered && Input::IsMouseButtonPressed(MouseButton::Left))
+                    {
+                        m_IsMouseClicked = true;
+                    } else
+                    {
+                        if (m_IsMouseClicked)
+                        {
+                            m_IsDrawing = false;
+                            m_IsMouseClicked = false;
+                            arc->ShowCenter = false;
+                        }
+                    }
+                }
+            }
+            break;
+        }
+        case ToolState::Circle:
+        {
+            if (!m_IsDrawing)
+            {
+                if (m_ViewportHovered && Input::IsMouseButtonPressed(MouseButton::Left))
+                {
+                    m_IsDrawing = true;
+
+                    auto& entity = m_ActiveScene->CreateEntity("Circle");
+                    auto circle = entity.AddComponent<CircleRendererComponent>();
+                    circle->Center = { m_MousePosInViewport, 1.0f };
+                    circle->Radius = 0.0f;
+                    circle->ShowCenter = true;
+                }
+            } else
+            {
+                if (Input::IsMouseButtonPressed(MouseButton::Left))
+                {
+                    auto& entity = m_ActiveScene->GetEntities().back();
+                    auto circle = entity.GetComponent<CircleRendererComponent>();
+
+                    float radius = glm::distance(circle->Center, glm::vec3(m_MousePosInViewport, 1.0f));
+                    circle->Radius = radius;
+                } else
+                {
+                    m_IsDrawing = false;
+
+                    auto& entity = m_ActiveScene->GetEntities().back();
+                    auto circle = entity.GetComponent<CircleRendererComponent>();
+                    circle->ShowCenter = false;
+                }
+            }
+
+            break;
+        }
+        }
         ////m_EditorCamera.OnUpdate();
 
         m_EditorScene->OnUpdate();
@@ -121,15 +257,14 @@ namespace Grafix
         {
             m_ToolState = ToolState::Line;
             GF_INFO("Switched to line tool.");
-
-            auto& line = m_ActiveScene->CreateEntity("Line");
-
+            m_IsDrawing = false;
             break;
         }
         case Key::A:
         {
             m_ToolState = ToolState::Arc;
             GF_INFO("Switched to arc tool.");
+            m_IsDrawing = false;
             break;
         }
         case Key::R:
@@ -142,6 +277,7 @@ namespace Grafix
         {
             m_ToolState = ToolState::Circle;
             GF_INFO("Switched to circle tool.");
+            m_IsDrawing = false;
             break;
         }
         }
@@ -285,7 +421,7 @@ namespace Grafix
 
             if (IsMouseInViewport())
             {
-                ImGui::Text("Mouse Position: (%.1f, %.1f)", m_MousePosInViewport.x, m_MousePosInViewport.y);
+                ImGui::Text("Mouse Position: (%d, %d)", (int)m_MousePosInViewport.x, (int)m_MousePosInViewport.y);
             } else
             {
                 ImGui::Text("Mouse Position:");
@@ -337,7 +473,7 @@ namespace Grafix
 
                         ImGui::ColorEdit4("Color", glm::value_ptr(circle->Color));
 
-                        ImGui::Checkbox("Show Aux", &circle->ShowAux);
+                        ImGui::Checkbox("Show Center", &circle->ShowCenter);
                     }
                     ImGui::PopID();
                     ImGui::Separator();
@@ -351,13 +487,13 @@ namespace Grafix
 
                         ImGui::DragFloat2("Center", glm::value_ptr(arc->Center), 1.0f, -2000.0f, 2000.0f);
                         ImGui::SliderFloat("Radius", &arc->Radius, 0.0f, 2000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
-                        ImGui::SliderFloat("Angle 1", &arc->Angle1, -2000.0f, 2000.0f);
-                        ImGui::SliderFloat("Angle 2", &arc->Angle2, -2000.0f, 2000.0f);
+                        ImGui::SliderFloat("Angle 1", &arc->Angle1, -720.0f, 720.0f);
+                        ImGui::SliderFloat("Angle 2", &arc->Angle2, -720.0f, 720.0f);
                         ImGui::Checkbox("Major", &arc->Major);
 
                         ImGui::ColorEdit4("Color", glm::value_ptr(arc->Color));
 
-                        ImGui::Checkbox("Show Aux", &arc->ShowAux);
+                        ImGui::Checkbox("Show Center", &arc->ShowCenter);
                     }
                     ImGui::PopID();
                     ImGui::Separator();
@@ -375,32 +511,6 @@ namespace Grafix
             {
                 if (auto tag = entity.GetComponent<TagComponent>())
                     ImGui::Text(tag->Tag.c_str());
-            }
-
-            ImGui::Separator();
-
-            if (ImGui::Button("Add Line"))
-            {
-                m_ToolState = ToolState::Line;
-
-                auto& line = m_ActiveScene->CreateEntity("Line");
-                line.AddComponent<LineRendererComponent>();
-            }
-
-            if (ImGui::Button("Add Circle"))
-            {
-                m_ToolState = ToolState::Circle;
-
-                auto& circle = m_ActiveScene->CreateEntity("Circle");
-                circle.AddComponent<CircleRendererComponent>();
-            }
-
-            if (ImGui::Button("Add Arc"))
-            {
-                m_ToolState = ToolState::Arc;
-
-                auto& arc = m_ActiveScene->CreateEntity("Arc");
-                arc.AddComponent<ArcRendererComponent>();
             }
         }
         ImGui::End();

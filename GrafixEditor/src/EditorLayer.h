@@ -51,5 +51,8 @@ namespace Grafix
         Renderer m_Renderer;
 
         ToolState m_ToolState = ToolState::Move;
+        bool m_IsDrawing = false;
+        int m_RemainingClicks = 1;
+        bool m_IsMouseClicked = false;
     };
 }

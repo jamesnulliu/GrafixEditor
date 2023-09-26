@@ -17,5 +17,6 @@ namespace Grafix
         // Auxiliary
         static glm::vec4 s_AuxColor;
         static void DrawAuxCross(const glm::vec2& point);
+        static void DrawAuxRadius(const glm::vec2& center, float radius, float angle);
     };
 }

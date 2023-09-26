@@ -35,10 +35,15 @@ namespace Grafix
 
     void GraphicsAlgorithm::DrawAuxCross(const glm::vec2& point)
     {
-        // Draw a cross
-        glm::vec4 color{ 0.9f, 0.9f, 0.9f, 1.0f };
-
         LineAlgorithm::Draw({ point.x - 3.0f, point.y }, { point.x + 4.0f, point.y }, s_AuxColor);
         LineAlgorithm::Draw({ point.x, point.y - 3.0f }, { point.x, point.y + 4.0f }, s_AuxColor);
+    }
+
+    void GraphicsAlgorithm::DrawAuxRadius(const glm::vec2& center, float radius, float angle)
+    {
+        float dx = radius * glm::cos(glm::radians(angle));
+        float dy = radius * glm::sin(glm::radians(angle));
+
+        LineAlgorithm::Draw(center, { center.x + dx, center.y + dy }, s_AuxColor, LineStyle::Dashed, 20.0f);
     }
 }

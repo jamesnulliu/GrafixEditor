@@ -3,9 +3,9 @@
 
 namespace Grafix
 {
-    void CircleAlgorithm::Draw(const glm::vec2& center, float radius, const glm::vec4& color, bool showAux)
+    void CircleAlgorithm::Draw(const glm::vec2& center, float radius, const glm::vec4& color, bool showCenter)
     {
-        if (showAux)
+        if (showCenter)
             DrawAuxCross(center);
 
         Midpoint(center, radius, color);

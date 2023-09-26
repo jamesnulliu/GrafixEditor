@@ -88,7 +88,8 @@ namespace Grafix
 
         glm::vec4 Color{ 0.8f, 0.8f, 0.8f, 1.0f };
 
-        bool ShowAux = false;
+        bool ShowCenter = false;
+        bool ShowRadius = false;
 
         CircleRendererComponent() = default;
         CircleRendererComponent(const CircleRendererComponent&) = default;
@@ -104,7 +105,8 @@ namespace Grafix
 
         glm::vec4 Color{ 0.8f, 0.8f, 0.8f, 1.0f };
 
-        bool ShowAux = false;
+        bool ShowCenter = false;
+        bool ShowRadius = false;
 
         ArcRendererComponent() = default;
         ArcRendererComponent(const ArcRendererComponent&) = default;
