@@ -17,6 +17,7 @@
 #include "Grafix/Renderer/EditorCamera.h"
 
 #include "Grafix/Scene/Scene.h"
+#include "Grafix/Scene/Entity.h"
 
 #include <imgui.h>
 

@@ -15,6 +15,7 @@ IncludeDir["ImGui"] = "Grafix/vendor/imgui"
 IncludeDir["GLFW"] = "Grafix/vendor/glfw/include"
 IncludeDir["Vulkan"] = "%{VULKAN}/Include"
 IncludeDir["glm"] = "Grafix/vendor/glm"
+IncludeDir["entt"] = "Grafix/vendor/entt/include"
 
 Library = {}
 Library["Vulkan"] = "%{VULKAN}/Lib/vulkan-1.lib"
@@ -56,7 +57,8 @@ project "Grafix"
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.Vulkan}",
-        "%{IncludeDir.glm}"
+        "%{IncludeDir.glm}",
+        "%{IncludeDir.entt}"
     }
 
     links
@@ -109,7 +111,8 @@ project "GrafixEditor"
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.Vulkan}",
-        "%{IncludeDir.glm}"
+        "%{IncludeDir.glm}",
+        "%{IncludeDir.entt}"
     }
 
     links { "Grafix" }

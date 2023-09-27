@@ -12,7 +12,10 @@ namespace Grafix
             DrawAuxCross(center);
 
         if (showRadius)
+        {
             DrawAuxRadius(center, radius, angle1);
+            DrawAuxRadius(center, radius, angle2);
+        }
 
         if (glm::abs(angle2 - angle1) < 1e-9f)
             return;

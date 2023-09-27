@@ -28,8 +28,13 @@ namespace Grafix
         bool OnKeyPressed(KeyPressedEvent& e);
         bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
-        void CalculateMousePosInViewport();
+        void UpdateMousePosInViewport();
         bool IsMouseInViewport() const;
+
+        void OnPenToolUpdate();
+        void OnLineToolUpdate();
+        void OnArcToolUpdate();
+        void OnCircleToolUpdate();
 
         void UI_MenuBar();
         void UI_Viewport();
@@ -52,7 +57,9 @@ namespace Grafix
 
         ToolState m_ToolState = ToolState::Move;
         bool m_IsDrawing = false;
-        int m_RemainingClicks = 1;
-        bool m_IsMouseClicked = false;
+        int m_OperationState = 1;
+        bool m_IsConfirmed = false;
+
+        Entity m_EditingEntity;
     };
 }

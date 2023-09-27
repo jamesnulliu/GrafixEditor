@@ -28,16 +28,25 @@ namespace Grafix
         std::fill(m_Pixels, m_Pixels + m_Image->GetWidth() * m_Image->GetHeight(), backgroundColor);
 
         // Entities
-        for (auto& entity : m_ActiveScene->GetEntities())
+        for (auto entity : m_ActiveScene->GetEntities())
         {
-            if (auto line = entity.GetComponent<LineRendererComponent>())
-                DrawLine(*line);
+            if (entity.HasComponent<LineRendererComponent>())
+            {
+                auto& line = entity.GetComponent<LineRendererComponent>();
+                DrawLine(line);
+            }
 
-            if (auto circle = entity.GetComponent<CircleRendererComponent>())
-                DrawCircle(*circle);
+            if (entity.HasComponent<CircleRendererComponent>())
+            {
+                auto& circle = entity.GetComponent<CircleRendererComponent>();
+                DrawCircle(circle);
+            }
 
-            if (auto arc = entity.GetComponent<ArcRendererComponent>())
-                DrawArc(*arc);
+            if (entity.HasComponent<ArcRendererComponent>())
+            {
+                auto& arc = entity.GetComponent<ArcRendererComponent>();
+                DrawArc(arc);
+            }
         }
 
         m_Image->SetPiexels(m_Pixels);

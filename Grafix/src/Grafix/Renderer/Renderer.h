@@ -1,7 +1,10 @@
 #pragma once
 
 #include "Image.h"
+
 #include "Grafix/Scene/Scene.h"
+#include "Grafix/Scene/Entity.h"
+
 #include "EditorCamera.h"
 
 #include <memory>

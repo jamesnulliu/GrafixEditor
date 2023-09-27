@@ -12,7 +12,7 @@ namespace Grafix
     void EditorLayer::Render()
     {
         m_Renderer.OnResize(m_ViewportWidth, m_ViewportHeight);
-        m_EditorCamera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+        m_EditorCamera.SetViewportSize((float)m_ViewportWidth, (float)m_ViewportHeight);
 
         m_Renderer.Render(*m_ActiveScene, m_EditorCamera);
     }
@@ -25,145 +25,17 @@ namespace Grafix
 
     void EditorLayer::OnUpdate()
     {
-        CalculateMousePosInViewport();
+        UpdateMousePosInViewport();
+        ////m_EditorCamera.OnUpdate();
 
         switch (m_ToolState)
         {
-        case ToolState::Move:
-        {
-            break;
+        case ToolState::Move: { break; }
+        case ToolState::Pen: { OnPenToolUpdate(); break; }
+        case ToolState::Line: { OnLineToolUpdate(); break; }
+        case ToolState::Arc: { OnArcToolUpdate(); break; }
+        case ToolState::Circle: { OnCircleToolUpdate(); break; }
         }
-        case ToolState::Line:
-        {
-            if (!m_IsDrawing)
-            {
-                if (m_ViewportHovered && Input::IsMouseButtonPressed(MouseButton::Left))
-                {
-                    m_IsDrawing = true;
-
-                    auto& entity = m_ActiveScene->CreateEntity("Line");
-                    auto line = entity.AddComponent<LineRendererComponent>();
-                    line->P0 = { m_MousePosInViewport, 1.0f };
-                    line->P1 = { m_MousePosInViewport, 1.0f };
-                }
-            } else
-            {
-                if (Input::IsMouseButtonPressed(MouseButton::Left))
-                {
-                    auto& entity = m_ActiveScene->GetEntities().back();
-                    auto line = entity.GetComponent<LineRendererComponent>();
-                    line->P1 = { m_MousePosInViewport, 1.0f };
-                } else
-                {
-                    m_IsDrawing = false;
-                }
-            }
-            break;
-        }
-        case ToolState::Arc:
-        {
-            if (!m_IsDrawing)
-            {
-                if (m_ViewportHovered && Input::IsMouseButtonPressed(MouseButton::Left))
-                {
-                    m_IsDrawing = true;
-                    m_RemainingClicks = 2;
-                    m_IsMouseClicked = false;
-
-                    auto& entity = m_ActiveScene->CreateEntity("Arc");
-                    auto arc = entity.AddComponent<ArcRendererComponent>();
-                    arc->Center = { m_MousePosInViewport, 1.0f };
-                    arc->Radius = 0.0f;
-                    arc->ShowCenter = true;
-                    arc->ShowRadius = true;
-                }
-            } else
-            {
-                auto& entity = m_ActiveScene->GetEntities().back();
-                auto arc = entity.GetComponent<ArcRendererComponent>();
-
-                if (m_RemainingClicks == 2)
-                {
-                    if (Input::IsMouseButtonPressed(MouseButton::Left))
-                    {
-                        float radius = glm::distance(arc->Center, glm::vec3(m_MousePosInViewport, 1.0f));
-                        arc->Radius = radius;
-
-                        float dx = m_MousePosInViewport.x - arc->Center.x;
-                        float dy = m_MousePosInViewport.y - arc->Center.y;
-                        float angle = glm::degrees(glm::atan(dy, dx));
-                        arc->Angle1 = angle;
-                        arc->Angle2 = angle;
-                    } else
-                    {
-                        arc->ShowRadius = false;
-                        --m_RemainingClicks;
-                    }
-                } else if (m_RemainingClicks == 1)
-                {
-                    float dx = m_MousePosInViewport.x - arc->Center.x;
-                    float dy = m_MousePosInViewport.y - arc->Center.y;
-                    float angle = glm::degrees(glm::atan(dy, dx));
-                    arc->Angle2 = angle;
-
-                    if (Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl))
-                        arc->Major = true;
-                    else
-                        arc->Major = false;
-
-                    if (m_ViewportHovered && Input::IsMouseButtonPressed(MouseButton::Left))
-                    {
-                        m_IsMouseClicked = true;
-                    } else
-                    {
-                        if (m_IsMouseClicked)
-                        {
-                            m_IsDrawing = false;
-                            m_IsMouseClicked = false;
-                            arc->ShowCenter = false;
-                        }
-                    }
-                }
-            }
-            break;
-        }
-        case ToolState::Circle:
-        {
-            if (!m_IsDrawing)
-            {
-                if (m_ViewportHovered && Input::IsMouseButtonPressed(MouseButton::Left))
-                {
-                    m_IsDrawing = true;
-
-                    auto& entity = m_ActiveScene->CreateEntity("Circle");
-                    auto circle = entity.AddComponent<CircleRendererComponent>();
-                    circle->Center = { m_MousePosInViewport, 1.0f };
-                    circle->Radius = 0.0f;
-                    circle->ShowCenter = true;
-                }
-            } else
-            {
-                if (Input::IsMouseButtonPressed(MouseButton::Left))
-                {
-                    auto& entity = m_ActiveScene->GetEntities().back();
-                    auto circle = entity.GetComponent<CircleRendererComponent>();
-
-                    float radius = glm::distance(circle->Center, glm::vec3(m_MousePosInViewport, 1.0f));
-                    circle->Radius = radius;
-                } else
-                {
-                    m_IsDrawing = false;
-
-                    auto& entity = m_ActiveScene->GetEntities().back();
-                    auto circle = entity.GetComponent<CircleRendererComponent>();
-                    circle->ShowCenter = false;
-                }
-            }
-
-            break;
-        }
-        }
-        ////m_EditorCamera.OnUpdate();
 
         m_EditorScene->OnUpdate();
     }
@@ -294,7 +166,7 @@ namespace Grafix
         return false;
     }
 
-    void EditorLayer::CalculateMousePosInViewport()
+    void EditorLayer::UpdateMousePosInViewport()
     {
         auto [mx, my] = ImGui::GetMousePos();
         m_MousePosInViewport = glm::i32vec2{
@@ -308,6 +180,168 @@ namespace Grafix
         return m_MousePosInViewport.x >= 0 && m_MousePosInViewport.x < (int)m_ViewportWidth
             && m_MousePosInViewport.y >= 0 && m_MousePosInViewport.y < (int)m_ViewportHeight;
     }
+
+    // -------------------------------------------------------------------
+    // ------------------------------ Tools ------------------------------
+    // -------------------------------------------------------------------
+
+    void EditorLayer::OnPenToolUpdate()
+    {
+    }
+
+    void EditorLayer::OnLineToolUpdate()
+    {
+        if (!m_IsDrawing)
+        {
+            if (m_ViewportHovered && Input::IsMouseButtonPressed(MouseButton::Left))
+            {
+                m_IsDrawing = true;
+
+                m_EditingEntity = m_ActiveScene->CreateEntity("Line");
+                auto& line = m_EditingEntity.AddComponent<LineRendererComponent>();
+                auto& transform = m_EditingEntity.AddComponent<TransformComponent>();
+
+                line.P0 = { m_MousePosInViewport, 1.0f };
+                line.P1 = { m_MousePosInViewport, 1.0f };
+            }
+        } else
+        {
+            auto& line = m_EditingEntity.GetComponent<LineRendererComponent>();
+
+            // If ESC is pressed, remove the line
+            if (Input::IsKeyPressed(Key::Escape) || Input::IsMouseButtonPressed(MouseButton::Right))
+            {
+                m_IsDrawing = false;
+                m_ActiveScene->RemoveEntity(m_EditingEntity);
+                return;
+            }
+
+            if (Input::IsMouseButtonPressed(MouseButton::Left))
+            {
+                // Press Shift key to draw horizontal/vertical lines
+                if (Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift))
+                {
+                    if (std::abs(m_MousePosInViewport.x - line.P0.x) < std::abs(m_MousePosInViewport.y - line.P0.y))
+                        line.P1 = { line.P0.x, m_MousePosInViewport.y, 1.0f };
+                    else
+                        line.P1 = { m_MousePosInViewport.x, line.P0.y, 1.0f };
+                } else
+                {
+                    line.P1 = { m_MousePosInViewport, 1.0f };
+                }
+            } else
+            {
+                m_IsDrawing = false;
+
+                // If the line has no length, remove it
+                if (glm::distance(line.P0, line.P1) < 0.1f)
+                    m_ActiveScene->RemoveEntity(m_EditingEntity);
+            }
+        }
+    }
+
+    void EditorLayer::OnArcToolUpdate()
+    {
+        if (!m_IsDrawing)
+        {
+            if (m_ViewportHovered && Input::IsMouseButtonPressed(MouseButton::Left))
+            {
+                m_IsDrawing = true;
+                m_OperationState = 0;
+                m_IsConfirmed = false;
+
+                m_EditingEntity = m_ActiveScene->CreateEntity("Arc");
+                auto& arc = m_EditingEntity.AddComponent<ArcRendererComponent>();
+
+                arc.Center = { m_MousePosInViewport, 1.0f };
+                arc.Radius = 0.0f;
+                arc.ShowCenter = true;
+                arc.ShowRadius = true;
+            }
+        } else
+        {
+            auto& arc = m_EditingEntity.GetComponent<ArcRendererComponent>();
+
+            if (m_OperationState == 0)
+            {
+                if (Input::IsMouseButtonPressed(MouseButton::Left))
+                {
+                    float radius = glm::distance(arc.Center, glm::vec3(m_MousePosInViewport, 1.0f));
+                    arc.Radius = radius;
+
+                    float dx = m_MousePosInViewport.x - arc.Center.x;
+                    float dy = m_MousePosInViewport.y - arc.Center.y;
+                    float angle = glm::degrees(glm::atan(dy, dx));
+                    arc.Angle1 = angle;
+                    arc.Angle2 = angle;
+                } else
+                {
+                    ++m_OperationState;
+                }
+            } else if (m_OperationState == 1)
+            {
+                float dx = m_MousePosInViewport.x - arc.Center.x;
+                float dy = m_MousePosInViewport.y - arc.Center.y;
+                float angle = glm::degrees(glm::atan(dy, dx));
+                arc.Angle2 = angle;
+
+                // Press Ctrl key to draw a major arc
+                if (Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl))
+                    arc.Major = true;
+                else
+                    arc.Major = false;
+
+                if ((m_ViewportHovered && Input::IsMouseButtonPressed(MouseButton::Left))
+                    || Input::IsKeyPressed(Key::Enter))
+                {
+                    m_IsConfirmed = true;
+                } else
+                {
+                    if (m_IsConfirmed)
+                    {
+                        m_IsDrawing = false;
+                        m_IsConfirmed = false;
+
+                        arc.ShowCenter = false;
+                        arc.ShowRadius = false;
+                    }
+                }
+            }
+        }
+    }
+
+    void EditorLayer::OnCircleToolUpdate()
+    {
+        if (!m_IsDrawing)
+        {
+            if (m_ViewportHovered && Input::IsMouseButtonPressed(MouseButton::Left))
+            {
+                m_IsDrawing = true;
+
+                m_EditingEntity = m_ActiveScene->CreateEntity("Circle");
+                auto& circle = m_EditingEntity.AddComponent<CircleRendererComponent>();
+                circle.Center = { m_MousePosInViewport, 1.0f };
+                circle.Radius = 0.0f;
+                circle.ShowCenter = true;
+            }
+        } else
+        {
+            auto& circle = m_EditingEntity.GetComponent<CircleRendererComponent>();
+
+            if (Input::IsMouseButtonPressed(MouseButton::Left))
+            {
+                circle.Radius = glm::distance(circle.Center, glm::vec3(m_MousePosInViewport, 1.0f));
+            } else
+            {
+                m_IsDrawing = false;
+                circle.ShowCenter = false;
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // --------------------------- UI Panels ---------------------------
+    // -----------------------------------------------------------------
 
     void EditorLayer::UI_MenuBar()
     {
@@ -438,66 +472,51 @@ namespace Grafix
             ////ImGui::DragFloat2("Editor Camera", glm::value_ptr(m_EditorCamera.GetPosition()), 0.1f, -200.0f, 200.0f);
             ImGui::Separator();
 
-            for (int i = 0; i < m_ActiveScene->GetEntities().size(); ++i)
+            for (auto entity : m_ActiveScene->GetEntities())
             {
-                auto* entity = &m_ActiveScene->GetEntities()[i];
-                if (!entity)
-                    continue;
-
-                if (auto line = entity->GetComponent<LineRendererComponent>())
+                ImGui::PushID(entity.GetTag().c_str());
                 {
-                    ImGui::PushID(i);
+                    if (entity.HasComponent<LineRendererComponent>())
                     {
-                        ImGui::Text(entity->GetComponent<TagComponent>()->Tag.c_str());
+                        auto& line = entity.GetComponent<LineRendererComponent>();
+                        ImGui::Text(entity.GetTag().c_str());
 
-                        ImGui::DragFloat2("Point A", glm::value_ptr(line->P0), 1.0f, -2000.0f, 2000.0f);
-                        ImGui::DragFloat2("Point B", glm::value_ptr(line->P1), 1.0f, -2000.0f, 2000.0f);
-                        ImGui::SliderFloat("Width", &line->Width, 0.0f, 1000.0f);
-                        if (line->Style == LineStyle::Dashed)
-                            ImGui::SliderFloat("Dash Length", &line->DashLength, 1, 100);
+                        ImGui::DragFloat2("Point A", glm::value_ptr(line.P0), 1.0f, -2000.0f, 2000.0f);
+                        ImGui::DragFloat2("Point B", glm::value_ptr(line.P1), 1.0f, -2000.0f, 2000.0f);
+                        ImGui::SliderFloat("Width", &line.Width, 0.0f, 1000.0f);
+                        if (line.Style == LineStyle::Dashed)
+                            ImGui::SliderFloat("Dash Length", &line.DashLength, 1, 100);
 
-                        ImGui::ColorEdit4("Color", glm::value_ptr(line->Color));
-                    }
-                    ImGui::PopID();
-                    ImGui::Separator();
-                }
-
-                if (auto circle = entity->GetComponent<CircleRendererComponent>())
-                {
-                    ImGui::PushID(i);
+                        ImGui::ColorEdit4("Color", glm::value_ptr(line.Color));
+                    } else if (entity.HasComponent<CircleRendererComponent>())
                     {
-                        ImGui::Text(entity->GetComponent<TagComponent>()->Tag.c_str());
+                        auto& circle = entity.GetComponent<CircleRendererComponent>();
+                        ImGui::Text(entity.GetTag().c_str());
 
-                        ImGui::DragFloat2("Center", glm::value_ptr(circle->Center), 1.0f, -2000.0f, 2000.0f);
-                        ImGui::SliderFloat("Radius", &circle->Radius, 0.0f, 2000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
+                        ImGui::DragFloat2("Center", glm::value_ptr(circle.Center), 1.0f, -2000.0f, 2000.0f);
+                        ImGui::SliderFloat("Radius", &circle.Radius, 0.0f, 2000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
 
-                        ImGui::ColorEdit4("Color", glm::value_ptr(circle->Color));
+                        ImGui::ColorEdit4("Color", glm::value_ptr(circle.Color));
 
-                        ImGui::Checkbox("Show Center", &circle->ShowCenter);
-                    }
-                    ImGui::PopID();
-                    ImGui::Separator();
-                }
-
-                if (auto arc = entity->GetComponent<ArcRendererComponent>())
-                {
-                    ImGui::PushID(i);
+                        ImGui::Checkbox("Show Center", &circle.ShowCenter);
+                    } else if (entity.HasComponent<ArcRendererComponent>())
                     {
-                        ImGui::Text(entity->GetComponent<TagComponent>()->Tag.c_str());
+                        auto& arc = entity.GetComponent<ArcRendererComponent>();
+                        ImGui::Text(entity.GetTag().c_str());
 
-                        ImGui::DragFloat2("Center", glm::value_ptr(arc->Center), 1.0f, -2000.0f, 2000.0f);
-                        ImGui::SliderFloat("Radius", &arc->Radius, 0.0f, 2000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
-                        ImGui::SliderFloat("Angle 1", &arc->Angle1, -720.0f, 720.0f);
-                        ImGui::SliderFloat("Angle 2", &arc->Angle2, -720.0f, 720.0f);
-                        ImGui::Checkbox("Major", &arc->Major);
+                        ImGui::DragFloat2("Center", glm::value_ptr(arc.Center), 1.0f, -2000.0f, 2000.0f);
+                        ImGui::SliderFloat("Radius", &arc.Radius, 0.0f, 2000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
+                        ImGui::SliderFloat("Angle 1", &arc.Angle1, -720.0f, 720.0f);
+                        ImGui::SliderFloat("Angle 2", &arc.Angle2, -720.0f, 720.0f);
+                        ImGui::Checkbox("Major", &arc.Major);
 
-                        ImGui::ColorEdit4("Color", glm::value_ptr(arc->Color));
+                        ImGui::ColorEdit4("Color", glm::value_ptr(arc.Color));
 
-                        ImGui::Checkbox("Show Center", &arc->ShowCenter);
+                        ImGui::Checkbox("Show Center", &arc.ShowCenter);
                     }
-                    ImGui::PopID();
-                    ImGui::Separator();
                 }
+                ImGui::PopID();
+                ImGui::Separator();
             }
         }
         ImGui::End();
@@ -508,10 +527,7 @@ namespace Grafix
         ImGui::Begin("Entities");
         {
             for (auto& entity : m_ActiveScene->GetEntities())
-            {
-                if (auto tag = entity.GetComponent<TagComponent>())
-                    ImGui::Text(tag->Tag.c_str());
-            }
+                ImGui::Text(entity.GetTag().c_str());
         }
         ImGui::End();
     }

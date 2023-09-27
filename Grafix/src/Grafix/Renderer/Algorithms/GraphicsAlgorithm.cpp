@@ -41,9 +41,7 @@ namespace Grafix
 
     void GraphicsAlgorithm::DrawAuxRadius(const glm::vec2& center, float radius, float angle)
     {
-        float dx = radius * glm::cos(glm::radians(angle));
-        float dy = radius * glm::sin(glm::radians(angle));
-
-        LineAlgorithm::Draw(center, { center.x + dx, center.y + dy }, s_AuxColor, LineStyle::Dashed, 20.0f);
+        glm::vec2 delta = radius * glm::vec2{ glm::cos(glm::radians(angle)), glm::sin(glm::radians(angle)) };
+        LineAlgorithm::Draw(center, center + delta, s_AuxColor, LineStyle::Dashed, 20.0f);
     }
 }

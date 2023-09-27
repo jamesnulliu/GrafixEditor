@@ -5,14 +5,7 @@
 
 namespace Grafix
 {
-    struct Component
-    {
-        Component() = default;
-        Component(const Component&) = default;
-        virtual ~Component() = default;
-    };
-
-    struct TransformComponent final : public Component
+    struct TransformComponent final
     {
         glm::vec3 Translation{ 0.0f, 0.0f, 0.0f };
         glm::vec3 Rotation{ 0.0f, 0.0f, 0.0f };
@@ -37,23 +30,13 @@ namespace Grafix
         }
     };
 
-    struct TagComponent final : public Component
+    struct TagComponent final
     {
         std::string Tag;
 
         TagComponent() = default;
         TagComponent(const TagComponent&) = default;
         TagComponent(const std::string& tag) : Tag(tag) {}
-    };
-
-    struct UUIDComponent final : public Component
-    {
-        // Not the correct one
-        ////UUID uuid;
-
-        UUIDComponent() = default;
-        UUIDComponent(const UUIDComponent&) = default;
-        ////UUIDComponent(const UUID& uuid) : uuid(uuid) {}
     };
 
     // -----------------------------------------------------------------
@@ -65,7 +48,7 @@ namespace Grafix
         Solid, Dashed
     };
 
-    struct LineRendererComponent final : public Component
+    struct LineRendererComponent final
     {
         glm::vec3 P0{ 400.0f, 500.0f, 0.0f };
         glm::vec3 P1{ 500.0f, 500.0f, 0.0f };
@@ -81,13 +64,14 @@ namespace Grafix
         LineRendererComponent(const LineRendererComponent&) = default;
     };
 
-    struct CircleRendererComponent final : public Component
+    struct CircleRendererComponent final
     {
         glm::vec3 Center{ 450.0f, 500.0f, 0.0f };
         float Radius = 50.0f;
 
         glm::vec4 Color{ 0.8f, 0.8f, 0.8f, 1.0f };
 
+        // Aux
         bool ShowCenter = false;
         bool ShowRadius = false;
 
@@ -95,7 +79,7 @@ namespace Grafix
         CircleRendererComponent(const CircleRendererComponent&) = default;
     };
 
-    struct ArcRendererComponent final : public Component
+    struct ArcRendererComponent final
     {
         glm::vec3 Center{ 450.0f, 500.0f, 0.0f };
         float Radius = 50.0f;
@@ -105,6 +89,7 @@ namespace Grafix
 
         glm::vec4 Color{ 0.8f, 0.8f, 0.8f, 1.0f };
 
+        // Aux
         bool ShowCenter = false;
         bool ShowRadius = false;
 
@@ -113,31 +98,33 @@ namespace Grafix
     };
 
     // NOT DONE
-    struct PolygonRendererComponent final : public Component
+    struct PolygonRendererComponent final
     {
         std::vector<glm::vec3> Vertices;
-        bool Closed = false;
-
-        PolygonRendererComponent() = default;
-        PolygonRendererComponent(const PolygonRendererComponent&) = default;
-
         void AddVertex(const glm::vec3& vertex)
         {
             if (!Vertices.empty())
             {
                 // The last vertex is the same as the new one.
-                if (Vertices.back() == vertex)
+                if (glm::distance(Vertices.back(), vertex) < 2.0f)
                     return;
 
                 // The first vertex is the same as the new one.
-                if (Vertices.front() == vertex)
+                if (glm::distance(Vertices.front(), vertex) < 2.0f)
                 {
-                    Closed = true;
+                    m_Closed = true;
                     return;
                 }
             }
 
             Vertices.push_back(vertex);
         }
+
+        bool IsClosed() const { return m_Closed; }
+
+        PolygonRendererComponent() = default;
+        PolygonRendererComponent(const PolygonRendererComponent&) = default;
+    private:
+        bool m_Closed = false;
     };
 }

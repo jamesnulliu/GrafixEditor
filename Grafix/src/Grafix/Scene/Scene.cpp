@@ -1,25 +1,40 @@
 #include "pch.h"
 #include "Scene.h"
 
+#include "Entity.h"
+
 namespace Grafix
 {
-    Entity& Scene::CreateEntity(const std::string& name)
+    Entity Scene::CreateEntity(const std::string& name)
     {
-        m_Entities.emplace_back();
+        entt::entity handle = m_Registry.create();
+        Entity entity{ handle, this };
+        m_Entities.push_back(entity);
 
-        Entity& entity = m_Entities.back();
-        auto& tag = entity.AddComponent<TagComponent>(name)->Tag;
-        tag = name.empty() ? "Entity" : name;
+        entity.AddComponent<TagComponent>(name.empty() ? "Entity" : name);
 
-        return m_Entities.back();
+        return entity;
     }
 
     void Scene::RemoveEntity(Entity entity)
     {
-        auto it = std::find(m_Entities.begin(), m_Entities.end(), entity);
+        auto iter = std::ranges::find(m_Entities, entity);
+        m_Entities.erase(iter);
 
-        if (it != m_Entities.end())
-            m_Entities.erase(it);
+        m_Registry.destroy((entt::entity)entity);
+    }
+
+    Entity Scene::GetEntity(std::string_view tag)
+    {
+        auto view = m_Registry.view<TagComponent>();
+        for (auto entity : view)
+        {
+            auto& tagComponent = view.get<TagComponent>(entity);
+            if (tagComponent.Tag == tag)
+                return Entity{ entity, this };
+        }
+
+        return Entity{};
     }
 
     void Scene::OnUpdate()
@@ -32,6 +47,7 @@ namespace Grafix
 
     void Scene::Clear()
     {
-        m_Entities.clear();
+        m_Registry.clear();
+        ////m_Entities.clear();
     }
 }
