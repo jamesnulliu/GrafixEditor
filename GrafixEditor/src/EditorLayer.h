@@ -39,8 +39,8 @@ namespace Grafix
         void UI_MenuBar();
         void UI_Viewport();
         void UI_Toolbar();
-        void UI_Information();
-        void UI_Settings();
+        void UI_Info();
+        void UI_Properties();
         void UI_Entities();
     private:
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
@@ -60,6 +60,7 @@ namespace Grafix
         int m_OperationState = 1;
         bool m_IsConfirmed = false;
 
-        Entity m_EditingEntity;
+        Entity m_SelectedEntity{};
+        glm::vec4 m_PickedColor{ 0.9f, 0.9f, 0.9f, 1.0f };
     };
 }

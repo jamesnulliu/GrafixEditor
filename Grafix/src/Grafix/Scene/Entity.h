@@ -32,21 +32,22 @@ namespace Grafix
         }
 
         template<typename... T>
-        bool HasComponent() const
+        bool HasComponent()
         {
             return m_Scene->m_Registry.all_of<T...>(m_Handle);
         }
 
         template<typename... T>
-        auto& GetComponent() const
+        decltype(auto) GetComponent()
         {
             GF_ASSERT(HasComponent<T...>(), "Entity does not have this/these component(s)!");
             return m_Scene->m_Registry.get<T...>(m_Handle);
         }
 
-        const std::string& GetTag() const { return GetComponent<TagComponent>().Tag; }
+        const std::string& GetTag() { return GetComponent<TagComponent>().Tag; }
 
         operator entt::entity() const { return m_Handle; }
+        operator bool() const { return m_Handle != entt::null; }
 
         bool operator==(const Entity& rhs) const { return m_Handle == rhs.m_Handle && m_Scene == rhs.m_Scene; }
         bool operator!=(const Entity& rhs) const { return !(*this == rhs); }

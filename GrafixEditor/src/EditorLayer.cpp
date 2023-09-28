@@ -26,6 +26,7 @@ namespace Grafix
     void EditorLayer::OnUpdate()
     {
         UpdateMousePosInViewport();
+
         ////m_EditorCamera.OnUpdate();
 
         switch (m_ToolState)
@@ -85,8 +86,8 @@ namespace Grafix
             UI_MenuBar();
             UI_Viewport();
             UI_Toolbar();
-            UI_Information();
-            UI_Settings();
+            UI_Info();
+            UI_Properties();
             UI_Entities();
         }
         ImGui::End(); // DockSpace
@@ -158,6 +159,19 @@ namespace Grafix
             m_IsDrawing = false;
             break;
         }
+        case Key::T:
+        {
+            if (control && m_SelectedEntity)
+            {
+                auto& transform = m_SelectedEntity.AddComponent<TransformComponent>();
+                if (m_SelectedEntity.HasComponent<LineRendererComponent>())
+                {
+                    auto line = m_SelectedEntity.GetComponent<LineRendererComponent>();
+                    transform.ReferencePoint = line.GetDefaultReferencePoint();
+                }
+            }
+            break;
+        }
         }
 
         return false;
@@ -175,6 +189,7 @@ namespace Grafix
     void EditorLayer::UpdateMousePosInViewport()
     {
         auto [mx, my] = ImGui::GetMousePos();
+
         m_MousePosInViewport = glm::i32vec2{
             (int)(mx - m_ViewportBounds[0].x),
             (int)(m_ViewportBounds[1].y - my)
@@ -203,21 +218,22 @@ namespace Grafix
             {
                 m_IsDrawing = true;
 
-                m_EditingEntity = m_ActiveScene->CreateEntity("Line");
-                auto& line = m_EditingEntity.AddComponent<LineRendererComponent>();
+                m_SelectedEntity = m_ActiveScene->CreateEntity("Line");
+                auto& line = m_SelectedEntity.AddComponent<LineRendererComponent>();
 
                 line.P0 = { m_MousePosInViewport, 1.0f };
                 line.P1 = { m_MousePosInViewport, 1.0f };
+                line.Color = m_PickedColor;
             }
         } else
         {
-            auto& line = m_EditingEntity.GetComponent<LineRendererComponent>();
+            auto& line = m_SelectedEntity.GetComponent<LineRendererComponent>();
 
             // If ESC is pressed, remove the line
             if (Input::IsKeyPressed(Key::Escape) || Input::IsMouseButtonPressed(MouseButton::Right))
             {
                 m_IsDrawing = false;
-                m_ActiveScene->RemoveEntity(m_EditingEntity);
+                m_ActiveScene->RemoveEntity(m_SelectedEntity);
                 return;
             }
 
@@ -240,7 +256,7 @@ namespace Grafix
 
                 // If the line has no length, remove it
                 if (glm::distance(line.P0, line.P1) < 0.1f)
-                    m_ActiveScene->RemoveEntity(m_EditingEntity);
+                    m_ActiveScene->RemoveEntity(m_SelectedEntity);
             }
         }
     }
@@ -255,17 +271,21 @@ namespace Grafix
                 m_OperationState = 0;
                 m_IsConfirmed = false;
 
-                m_EditingEntity = m_ActiveScene->CreateEntity("Arc");
-                auto& arc = m_EditingEntity.AddComponent<ArcRendererComponent>();
+                m_SelectedEntity = m_ActiveScene->CreateEntity("Arc");
+                auto& arc = m_SelectedEntity.AddComponent<ArcRendererComponent>();
 
                 arc.Center = { m_MousePosInViewport, 1.0f };
                 arc.Radius = 0.0f;
+
+                arc.Color = m_PickedColor;
+
                 arc.ShowCenter = true;
                 arc.ShowRadius = true;
             }
         } else
         {
-            auto& arc = m_EditingEntity.GetComponent<ArcRendererComponent>();
+            auto& arc = m_SelectedEntity.GetComponent<ArcRendererComponent>();
+            arc.Color = m_PickedColor;
 
             if (m_OperationState == 0)
             {
@@ -323,15 +343,18 @@ namespace Grafix
             {
                 m_IsDrawing = true;
 
-                m_EditingEntity = m_ActiveScene->CreateEntity("Circle");
-                auto& circle = m_EditingEntity.AddComponent<CircleRendererComponent>();
+                m_SelectedEntity = m_ActiveScene->CreateEntity("Circle");
+                auto& circle = m_SelectedEntity.AddComponent<CircleRendererComponent>();
                 circle.Center = { m_MousePosInViewport, 1.0f };
                 circle.Radius = 0.0f;
+
+                circle.Color = m_PickedColor;
+
                 circle.ShowCenter = true;
             }
         } else
         {
-            auto& circle = m_EditingEntity.GetComponent<CircleRendererComponent>();
+            auto& circle = m_SelectedEntity.GetComponent<CircleRendererComponent>();
 
             if (Input::IsMouseButtonPressed(MouseButton::Left))
             {
@@ -385,7 +408,7 @@ namespace Grafix
 
             m_ViewportFocused = ImGui::IsWindowFocused();
             m_ViewportHovered = ImGui::IsWindowHovered();
-            Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportHovered);
+            Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportFocused);
 
             m_ViewportWidth = (uint32_t)ImGui::GetContentRegionAvail().x;
             m_ViewportHeight = (uint32_t)ImGui::GetContentRegionAvail().y;
@@ -458,9 +481,9 @@ namespace Grafix
         ImGui::End();
     }
 
-    void EditorLayer::UI_Information()
+    void EditorLayer::UI_Info()
     {
-        ImGui::Begin("Information");
+        ImGui::Begin("Info");
         {
             ImGui::Text("FPS: %d", (uint32_t)Application::Get().GetFPS());
 
@@ -472,22 +495,74 @@ namespace Grafix
         ImGui::End();
     }
 
-    void EditorLayer::UI_Settings()
+    void EditorLayer::UI_Properties()
     {
-        ImGui::Begin("Settings");
-        {
-            ImGui::ColorEdit3("Background Color", glm::value_ptr(m_ActiveScene->GetBackgroundColor()));
-            ////ImGui::DragFloat2("Editor Camera", glm::value_ptr(m_EditorCamera.GetPosition()), 0.1f, -200.0f, 200.0f);
-            ImGui::Separator();
+        ImGui::ShowDemoWindow();
 
-            for (auto entity : m_ActiveScene->GetEntities())
+        ImGui::Begin("Color");
+        {
+            if (m_SelectedEntity)
             {
-                ImGui::PushID(entity.GetTag().c_str());
+                if (m_SelectedEntity.HasComponent<LineRendererComponent>())
                 {
-                    if (entity.HasComponent<LineRendererComponent, TransformComponent>())
+                    auto& line = m_SelectedEntity.GetComponent<LineRendererComponent>();
+                    m_PickedColor = line.Color;
+                    ImGui::ColorPicker3("Color", glm::value_ptr(line.Color));
+                }
+            } else
+            {
+                ImGui::ColorPicker3("Color", glm::value_ptr(m_PickedColor));
+            }
+        }
+        ImGui::End();
+
+        ImGui::Begin("Properties");
+        {
+            if (m_SelectedEntity)
+            {
+                if (m_SelectedEntity.HasComponent<TransformComponent>())
+                {
+                    auto& transform = m_SelectedEntity.GetComponent<TransformComponent>();
+                    ImGui::Text("Transform");
+
+                    ImGui::DragFloat2("Reference Point", glm::value_ptr(transform.ReferencePoint), 1.0f, -2000.0f, 2000.0f);
+
+                    ImGui::DragFloat2("Position", glm::value_ptr(transform.Translation), 1.0f, -2000.0f, 2000.0f);
+                    ImGui::DragFloat("Rotation", &transform.Rotation.z, 1.0f, -720.0f, 720.0f);
+                    if (transform.KeepRatio)
                     {
-                        auto line = entity.GetComponent<LineRendererComponent>();
-                        ImGui::Text(entity.GetTag().c_str());
+                        ImGui::DragFloat("Scale", &transform.Scale.x, 1.0f, 0.0f, 100.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
+                        transform.Scale.y = transform.Scale.x;
+                    } else
+                    {
+                        ImGui::DragFloat2("Scale", glm::value_ptr(transform.Scale), 1.0f, 0.0f, 100.0f);
+                    }
+                    ImGui::SameLine();
+                    ImGui::Checkbox("Keep Ratio", &transform.KeepRatio);
+
+                    if (ImGui::Button("Apply"))
+                    {
+                        if (m_SelectedEntity.HasComponent<LineRendererComponent>())
+                        {
+                            auto& line = m_SelectedEntity.GetComponent<LineRendererComponent>();
+                            auto transform = m_SelectedEntity.GetComponent<TransformComponent>().GetTransformMatrix();
+                            line.P0 = transform * glm::vec4(line.P0, 1.0f);
+                            line.P1 = transform * glm::vec4(line.P1, 1.0f);
+
+                            m_SelectedEntity.RemoveComponent<TransformComponent>();
+                        }
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("Cancel"))
+                        m_SelectedEntity.RemoveComponent<TransformComponent>();
+                } else
+                {
+                    if (m_SelectedEntity.HasComponent<LineRendererComponent>())
+                    {
+                        auto& line = m_SelectedEntity.GetComponent<LineRendererComponent>();
+                        ImGui::Text(m_SelectedEntity.GetTag().c_str());
 
                         ImGui::DragFloat2("Point A", glm::value_ptr(line.P0), 1.0f, -2000.0f, 2000.0f);
                         ImGui::DragFloat2("Point B", glm::value_ptr(line.P1), 1.0f, -2000.0f, 2000.0f);
@@ -495,22 +570,22 @@ namespace Grafix
                         if (line.Style == LineStyle::Dashed)
                             ImGui::SliderFloat("Dash Length", &line.DashLength, 1, 100);
 
-                        ImGui::ColorEdit4("Color", glm::value_ptr(line.Color));
-                    } else if (entity.HasComponent<CircleRendererComponent>())
+                        ImGui::ColorEdit3("Color", glm::value_ptr(line.Color));
+                    } else if (m_SelectedEntity.HasComponent<CircleRendererComponent>())
                     {
-                        auto& circle = entity.GetComponent<CircleRendererComponent>();
-                        ImGui::Text(entity.GetTag().c_str());
+                        auto& circle = m_SelectedEntity.GetComponent<CircleRendererComponent>();
+                        ImGui::Text(m_SelectedEntity.GetTag().c_str());
 
                         ImGui::DragFloat2("Center", glm::value_ptr(circle.Center), 1.0f, -2000.0f, 2000.0f);
                         ImGui::SliderFloat("Radius", &circle.Radius, 0.0f, 2000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
 
-                        ImGui::ColorEdit4("Color", glm::value_ptr(circle.Color));
+                        ImGui::ColorEdit3("Color", glm::value_ptr(circle.Color));
 
                         ImGui::Checkbox("Show Center", &circle.ShowCenter);
-                    } else if (entity.HasComponent<ArcRendererComponent>())
+                    } else if (m_SelectedEntity.HasComponent<ArcRendererComponent>())
                     {
-                        auto& arc = entity.GetComponent<ArcRendererComponent>();
-                        ImGui::Text(entity.GetTag().c_str());
+                        auto& arc = m_SelectedEntity.GetComponent<ArcRendererComponent>();
+                        ImGui::Text(m_SelectedEntity.GetTag().c_str());
 
                         ImGui::DragFloat2("Center", glm::value_ptr(arc.Center), 1.0f, -2000.0f, 2000.0f);
                         ImGui::SliderFloat("Radius", &arc.Radius, 0.0f, 2000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
@@ -518,13 +593,15 @@ namespace Grafix
                         ImGui::SliderFloat("Angle 2", &arc.Angle2, -720.0f, 720.0f);
                         ImGui::Checkbox("Major", &arc.Major);
 
-                        ImGui::ColorEdit4("Color", glm::value_ptr(arc.Color));
+                        ImGui::ColorEdit3("Color", glm::value_ptr(arc.Color));
 
                         ImGui::Checkbox("Show Center", &arc.ShowCenter);
                     }
                 }
-                ImGui::PopID();
-                ImGui::Separator();
+            } else
+            {
+                ImGui::Text("Background");
+                ImGui::ColorEdit3("Color", glm::value_ptr(m_ActiveScene->GetBackgroundColor()));
             }
         }
         ImGui::End();
@@ -534,8 +611,16 @@ namespace Grafix
     {
         ImGui::Begin("Entities");
         {
-            for (auto& entity : m_ActiveScene->GetEntities())
-                ImGui::Text(entity.GetTag().c_str());
+            for (auto it = m_ActiveScene->GetEntities().rbegin(); it != m_ActiveScene->GetEntities().rend(); ++it)
+            {
+                Entity entity = *it;
+                bool selected = m_SelectedEntity == entity;
+
+                ImGui::Selectable(entity.GetTag().c_str(), &selected);
+
+                if (ImGui::IsItemClicked())
+                    m_SelectedEntity = entity;
+            }
         }
         ImGui::End();
     }
