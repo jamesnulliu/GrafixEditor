@@ -125,6 +125,12 @@ namespace Grafix
             GF_INFO("Switched to pen tool.");
             break;
         }
+        case Key::B:
+        {
+            m_ToolState = ToolState::Bucket;
+            GF_INFO("Switched to Bucket tool.");
+            break;
+        }
         case Key::L:
         {
             m_ToolState = ToolState::Line;
@@ -199,7 +205,6 @@ namespace Grafix
 
                 m_EditingEntity = m_ActiveScene->CreateEntity("Line");
                 auto& line = m_EditingEntity.AddComponent<LineRendererComponent>();
-                auto& transform = m_EditingEntity.AddComponent<TransformComponent>();
 
                 line.P0 = { m_MousePosInViewport, 1.0f };
                 line.P1 = { m_MousePosInViewport, 1.0f };
@@ -420,6 +425,12 @@ namespace Grafix
                 m_ToolState = ToolState::Pen;
             }
 
+            if (ImGui::Button("Bucket", ImVec2{ 80.0f, 30.0f }))
+            {
+                GF_INFO("Switched to Bucket tool.");
+                m_ToolState = ToolState::Bucket;
+            }
+
             if (ImGui::Button("Line", ImVec2{ 80.0f, 30.0f }))
             {
                 GF_INFO("Switched to line tool.");
@@ -454,12 +465,9 @@ namespace Grafix
             ImGui::Text("FPS: %d", (uint32_t)Application::Get().GetFPS());
 
             if (IsMouseInViewport())
-            {
                 ImGui::Text("Mouse Position: (%d, %d)", (int)m_MousePosInViewport.x, (int)m_MousePosInViewport.y);
-            } else
-            {
+            else
                 ImGui::Text("Mouse Position:");
-            }
         }
         ImGui::End();
     }
@@ -476,9 +484,9 @@ namespace Grafix
             {
                 ImGui::PushID(entity.GetTag().c_str());
                 {
-                    if (entity.HasComponent<LineRendererComponent>())
+                    if (entity.HasComponent<LineRendererComponent, TransformComponent>())
                     {
-                        auto& line = entity.GetComponent<LineRendererComponent>();
+                        auto line = entity.GetComponent<LineRendererComponent>();
                         ImGui::Text(entity.GetTag().c_str());
 
                         ImGui::DragFloat2("Point A", glm::value_ptr(line.P0), 1.0f, -2000.0f, 2000.0f);

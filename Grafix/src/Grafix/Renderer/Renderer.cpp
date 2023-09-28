@@ -34,15 +34,11 @@ namespace Grafix
             {
                 auto& line = entity.GetComponent<LineRendererComponent>();
                 DrawLine(line);
-            }
-
-            if (entity.HasComponent<CircleRendererComponent>())
+            } else if (entity.HasComponent<CircleRendererComponent>())
             {
                 auto& circle = entity.GetComponent<CircleRendererComponent>();
                 DrawCircle(circle);
-            }
-
-            if (entity.HasComponent<ArcRendererComponent>())
+            } else if (entity.HasComponent<ArcRendererComponent>())
             {
                 auto& arc = entity.GetComponent<ArcRendererComponent>();
                 DrawArc(arc);

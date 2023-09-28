@@ -10,7 +10,7 @@ namespace Grafix
         enum class ToolState : uint8_t
         {
             Move = 0,
-            Pen,
+            Pen, Bucket,
             Line, Arc,
             Rectangle, Circle
         };
