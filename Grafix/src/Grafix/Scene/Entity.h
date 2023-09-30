@@ -16,32 +16,44 @@ namespace Grafix
         Entity& operator=(const Entity&) = default;
         ~Entity() = default;
 
-        template<typename T, typename... Args>
-        T& AddComponent(Args&&... args)
+        template<typename Component, typename... Args>
+        Component& AddComponent(Args&&... args)
         {
-            GF_ASSERT(!HasComponent<T>(), "Entity already has this type of component!");
+            GF_ASSERT(!HasComponent<Component>(), "Entity already has this type of component!");
 
-            return m_Scene->m_Registry.emplace<T>(m_Handle, std::forward<Args>(args)...);
+            return m_Scene->m_Registry.emplace<Component>(m_Handle, std::forward<Args>(args)...);
         }
 
-        template<typename T>
+        template<typename Component>
         void RemoveComponent()
         {
-            GF_ASSERT(HasComponent<T>(), "Entity does not have this type of component!");
-            m_Scene->m_Registry.remove<T>(m_Handle);
+            GF_ASSERT(HasComponent<Component>(), "Entity does not have this type of component!");
+            m_Scene->m_Registry.remove<Component>(m_Handle);
         }
 
-        template<typename... T>
+        template<typename... Components>
+        bool HasAllOfComponents()
+        {
+            return m_Scene->m_Registry.all_of<Components...>(m_Handle);
+        }
+
+        template<typename... Components>
+        bool HasAnyOfComponents()
+        {
+            return m_Scene->m_Registry.any_of<Components...>(m_Handle);
+        }
+
+        template<typename Component>
         bool HasComponent()
         {
-            return m_Scene->m_Registry.all_of<T...>(m_Handle);
+            return m_Scene->m_Registry.any_of<Component>(m_Handle);
         }
 
-        template<typename... T>
+        template<typename... Components>
         decltype(auto) GetComponent()
         {
-            GF_ASSERT(HasComponent<T...>(), "Entity does not have this/these component(s)!");
-            return m_Scene->m_Registry.get<T...>(m_Handle);
+            GF_ASSERT(HasComponent<Components...>(), "Entity does not have this/these component(s)!");
+            return m_Scene->m_Registry.get<Components...>(m_Handle);
         }
 
         const std::string& GetTag() { return GetComponent<TagComponent>().Tag; }

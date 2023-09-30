@@ -67,7 +67,7 @@ namespace Grafix
         Solid, Dashed
     };
 
-    struct LineRendererComponent final
+    struct LineComponent final
     {
         glm::vec3 P0{ 400.0f, 500.0f, 0.0f };
         glm::vec3 P1{ 500.0f, 500.0f, 0.0f };
@@ -79,13 +79,13 @@ namespace Grafix
 
         float DashLength = 1.0f;
 
-        LineRendererComponent() = default;
-        LineRendererComponent(const LineRendererComponent&) = default;
+        LineComponent() = default;
+        LineComponent(const LineComponent&) = default;
 
         glm::vec3 GetDefaultReferencePoint() const { return (P0 + P1) / 2.0f; }
     };
 
-    struct CircleRendererComponent final
+    struct CircleComponent final
     {
         glm::vec3 Center{ 450.0f, 500.0f, 0.0f };
         float Radius = 50.0f;
@@ -96,13 +96,13 @@ namespace Grafix
         bool ShowCenter = false;
         bool ShowRadius = false;
 
-        CircleRendererComponent() = default;
-        CircleRendererComponent(const CircleRendererComponent&) = default;
+        CircleComponent() = default;
+        CircleComponent(const CircleComponent&) = default;
 
         glm::vec3 GetDefaultReferencePoint() const { return Center; }
     };
 
-    struct ArcRendererComponent final
+    struct ArcComponent final
     {
         glm::vec3 Center{ 450.0f, 500.0f, 0.0f };
         float Radius = 50.0f;
@@ -116,14 +116,14 @@ namespace Grafix
         bool ShowCenter = false;
         bool ShowRadius = false;
 
-        ArcRendererComponent() = default;
-        ArcRendererComponent(const ArcRendererComponent&) = default;
+        ArcComponent() = default;
+        ArcComponent(const ArcComponent&) = default;
 
         glm::vec3 GetDefaultReferencePoint() const { return Center; }
     };
 
     // NOT DONE
-    struct PolygonRendererComponent final
+    struct PolygonComponent final
     {
         std::vector<glm::vec3> Vertices;
         void AddVertex(const glm::vec3& vertex)
@@ -147,8 +147,8 @@ namespace Grafix
 
         bool IsClosed() const { return m_Closed; }
 
-        PolygonRendererComponent() = default;
-        PolygonRendererComponent(const PolygonRendererComponent&) = default;
+        PolygonComponent() = default;
+        PolygonComponent(const PolygonComponent&) = default;
     private:
         bool m_Closed = false;
     };

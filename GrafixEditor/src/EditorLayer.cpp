@@ -112,66 +112,77 @@ namespace Grafix
         bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
         bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
 
-        switch (e.GetKey())
+        if (!m_IsDrawing)
         {
-        case Key::M:
-        {
-            m_ToolState = ToolState::Move;
-            GF_INFO("Switched to move tool.");
-            break;
-        }
-        case Key::P:
-        {
-            m_ToolState = ToolState::Pen;
-            GF_INFO("Switched to pen tool.");
-            break;
-        }
-        case Key::B:
-        {
-            m_ToolState = ToolState::Bucket;
-            GF_INFO("Switched to Bucket tool.");
-            break;
-        }
-        case Key::L:
-        {
-            m_ToolState = ToolState::Line;
-            GF_INFO("Switched to line tool.");
-            m_IsDrawing = false;
-            break;
-        }
-        case Key::A:
-        {
-            m_ToolState = ToolState::Arc;
-            GF_INFO("Switched to arc tool.");
-            m_IsDrawing = false;
-            break;
-        }
-        case Key::R:
-        {
-            m_ToolState = ToolState::Rectangle;
-            GF_INFO("Switched to rectangle tool.");
-            break;
-        }
-        case Key::C:
-        {
-            m_ToolState = ToolState::Circle;
-            GF_INFO("Switched to circle tool.");
-            m_IsDrawing = false;
-            break;
-        }
-        case Key::T:
-        {
-            if (control && m_SelectedEntity)
+            switch (e.GetKey())
             {
-                auto& transform = m_SelectedEntity.AddComponent<TransformComponent>();
-                if (m_SelectedEntity.HasComponent<LineRendererComponent>())
-                {
-                    auto line = m_SelectedEntity.GetComponent<LineRendererComponent>();
-                    transform.ReferencePoint = line.GetDefaultReferencePoint();
-                }
+            case Key::M:
+            {
+                GF_INFO("Switched to move tool.");
+                m_ToolState = ToolState::Move;
+                m_SelectedEntity = {};
+                break;
             }
-            break;
-        }
+            case Key::P:
+            {
+                GF_INFO("Switched to pen tool.");
+                m_ToolState = ToolState::Pen;
+                m_SelectedEntity = {};
+                break;
+            }
+            case Key::B:
+            {
+                GF_INFO("Switched to Bucket tool.");
+                m_ToolState = ToolState::Bucket;
+                m_SelectedEntity = {};
+                break;
+            }
+            case Key::L:
+            {
+                GF_INFO("Switched to line tool.");
+                m_ToolState = ToolState::Line;
+                m_SelectedEntity = {};
+                break;
+            }
+            case Key::A:
+            {
+                GF_INFO("Switched to arc tool.");
+                m_ToolState = ToolState::Arc;
+                m_SelectedEntity = {};
+                break;
+            }
+            case Key::R:
+            {
+                GF_INFO("Switched to rectangle tool.");
+                m_ToolState = ToolState::Rectangle;
+                m_SelectedEntity = {};
+                break;
+            }
+            case Key::C:
+            {
+                GF_INFO("Switched to circle tool.");
+                m_ToolState = ToolState::Circle;
+                m_SelectedEntity = {};
+                break;
+            }
+            case Key::T:
+            {
+                if (control && m_SelectedEntity)
+                {
+                    auto& transform = m_SelectedEntity.AddComponent<TransformComponent>();
+                    if (m_SelectedEntity.HasComponent<LineComponent>())
+                    {
+                        auto& line = m_SelectedEntity.GetComponent<LineComponent>();
+                        transform.ReferencePoint = line.GetDefaultReferencePoint();
+                    } else if (m_SelectedEntity.HasComponent<CircleComponent>())
+                    {
+                        auto& circle = m_SelectedEntity.GetComponent<CircleComponent>();
+                        transform.ReferencePoint = circle.GetDefaultReferencePoint();
+                    }
+                }
+                break;
+            }
+            }
         }
 
         return false;
@@ -219,7 +230,7 @@ namespace Grafix
                 m_IsDrawing = true;
 
                 m_SelectedEntity = m_ActiveScene->CreateEntity("Line");
-                auto& line = m_SelectedEntity.AddComponent<LineRendererComponent>();
+                auto& line = m_SelectedEntity.AddComponent<LineComponent>();
 
                 line.P0 = { m_MousePosInViewport, 1.0f };
                 line.P1 = { m_MousePosInViewport, 1.0f };
@@ -227,7 +238,7 @@ namespace Grafix
             }
         } else
         {
-            auto& line = m_SelectedEntity.GetComponent<LineRendererComponent>();
+            auto& line = m_SelectedEntity.GetComponent<LineComponent>();
 
             // If ESC is pressed, remove the line
             if (Input::IsKeyPressed(Key::Escape) || Input::IsMouseButtonPressed(MouseButton::Right))
@@ -272,11 +283,10 @@ namespace Grafix
                 m_IsConfirmed = false;
 
                 m_SelectedEntity = m_ActiveScene->CreateEntity("Arc");
-                auto& arc = m_SelectedEntity.AddComponent<ArcRendererComponent>();
+                auto& arc = m_SelectedEntity.AddComponent<ArcComponent>();
 
                 arc.Center = { m_MousePosInViewport, 1.0f };
                 arc.Radius = 0.0f;
-
                 arc.Color = m_PickedColor;
 
                 arc.ShowCenter = true;
@@ -284,7 +294,7 @@ namespace Grafix
             }
         } else
         {
-            auto& arc = m_SelectedEntity.GetComponent<ArcRendererComponent>();
+            auto& arc = m_SelectedEntity.GetComponent<ArcComponent>();
             arc.Color = m_PickedColor;
 
             if (m_OperationState == 0)
@@ -344,17 +354,16 @@ namespace Grafix
                 m_IsDrawing = true;
 
                 m_SelectedEntity = m_ActiveScene->CreateEntity("Circle");
-                auto& circle = m_SelectedEntity.AddComponent<CircleRendererComponent>();
+                auto& circle = m_SelectedEntity.AddComponent<CircleComponent>();
                 circle.Center = { m_MousePosInViewport, 1.0f };
                 circle.Radius = 0.0f;
-
                 circle.Color = m_PickedColor;
 
                 circle.ShowCenter = true;
             }
         } else
         {
-            auto& circle = m_SelectedEntity.GetComponent<CircleRendererComponent>();
+            auto& circle = m_SelectedEntity.GetComponent<CircleComponent>();
 
             if (Input::IsMouseButtonPressed(MouseButton::Left))
             {
@@ -440,42 +449,49 @@ namespace Grafix
             {
                 GF_INFO("Switched to move tool.");
                 m_ToolState = ToolState::Move;
+                m_SelectedEntity = {};
             }
 
             if (ImGui::Button("Pen", ImVec2{ 80.0f, 30.0f }))
             {
                 GF_INFO("Switched to pen tool.");
                 m_ToolState = ToolState::Pen;
+                m_SelectedEntity = {};
             }
 
             if (ImGui::Button("Bucket", ImVec2{ 80.0f, 30.0f }))
             {
                 GF_INFO("Switched to Bucket tool.");
                 m_ToolState = ToolState::Bucket;
+                m_SelectedEntity = {};
             }
 
             if (ImGui::Button("Line", ImVec2{ 80.0f, 30.0f }))
             {
                 GF_INFO("Switched to line tool.");
                 m_ToolState = ToolState::Line;
+                m_SelectedEntity = {};
             }
 
             if (ImGui::Button("Arc", ImVec2{ 80.0f, 30.0f }))
             {
                 GF_INFO("Switched to arc tool.");
                 m_ToolState = ToolState::Arc;
+                m_SelectedEntity = {};
             }
 
             if (ImGui::Button("Rectangle", ImVec2{ 80.0f, 30.0f }))
             {
                 GF_INFO("Switched to rectangle tool.");
                 m_ToolState = ToolState::Rectangle;
+                m_SelectedEntity = {};
             }
 
             if (ImGui::Button("Circle", ImVec2{ 80.0f, 30.0f }))
             {
                 GF_INFO("Switched to circle tool.");
                 m_ToolState = ToolState::Circle;
+                m_SelectedEntity = {};
             }
         }
         ImGui::End();
@@ -503,11 +519,26 @@ namespace Grafix
         {
             if (m_SelectedEntity)
             {
-                if (m_SelectedEntity.HasComponent<LineRendererComponent>())
+                if (m_SelectedEntity.HasComponent<LineComponent>())
                 {
-                    auto& line = m_SelectedEntity.GetComponent<LineRendererComponent>();
+                    auto& line = m_SelectedEntity.GetComponent<LineComponent>();
                     m_PickedColor = line.Color;
                     ImGui::ColorPicker3("Color", glm::value_ptr(line.Color));
+                } else if (m_SelectedEntity.HasComponent<ArcComponent>())
+                {
+                    auto& arc = m_SelectedEntity.GetComponent<ArcComponent>();
+                    m_PickedColor = arc.Color;
+                    ImGui::ColorPicker3("Color", glm::value_ptr(arc.Color));
+                } /*else if (m_SelectedEntity.HasComponent<RectangleRendererComponent>())
+                {
+                    auto& rectangle = m_SelectedEntity.GetComponent<RectangleRendererComponent>();
+                    m_PickedColor = rectangle.Color;
+                    ImGui::ColorPicker3("Color", glm::value_ptr(rectangle.Color));
+                }*/ else if (m_SelectedEntity.HasComponent<CircleComponent>())
+                {
+                    auto& circle = m_SelectedEntity.GetComponent<CircleComponent>();
+                    m_PickedColor = circle.Color;
+                    ImGui::ColorPicker3("Color", glm::value_ptr(circle.Color));
                 }
             } else
             {
@@ -520,77 +551,95 @@ namespace Grafix
         {
             if (m_SelectedEntity)
             {
-                if (m_SelectedEntity.HasComponent<TransformComponent>())
+                if (m_SelectedEntity.HasComponent<TransformComponent>())  // Transforming
                 {
                     auto& transform = m_SelectedEntity.GetComponent<TransformComponent>();
                     ImGui::Text("Transform");
 
                     ImGui::DragFloat2("Reference Point", glm::value_ptr(transform.ReferencePoint), 1.0f, -2000.0f, 2000.0f);
 
-                    ImGui::DragFloat2("Position", glm::value_ptr(transform.Translation), 1.0f, -2000.0f, 2000.0f);
-                    ImGui::DragFloat("Rotation", &transform.Rotation.z, 1.0f, -720.0f, 720.0f);
-                    if (transform.KeepRatio)
+                    ImGui::DragFloat2("Position", glm::value_ptr(transform.Translation), 1.0f, -5000.0f, 5000.0f);
+                    ImGui::DragFloat("Rotation", &transform.Rotation.z, 1.0f, -5000.0f, 5000.0f);
+
+                    if (m_SelectedEntity.HasAnyOfComponents<LineComponent>())  // Ratio is changeable
                     {
-                        ImGui::DragFloat("Scale", &transform.Scale.x, 1.0f, 0.0f, 100.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
-                        transform.Scale.y = transform.Scale.x;
+                        if (transform.KeepRatio)
+                        {
+                            ImGui::DragFloat("Scale", &transform.Scale.x, 1.0f, 0.0f, 1000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
+                            transform.Scale.y = transform.Scale.x;
+                        } else
+                        {
+                            ImGui::DragFloat2("Scale", glm::value_ptr(transform.Scale), 1.0f, 0.0f, 1000.0f);
+                        }
+                        ImGui::SameLine();
+
+                        ImGui::Checkbox("Keep Ratio", &transform.KeepRatio);
                     } else
                     {
-                        ImGui::DragFloat2("Scale", glm::value_ptr(transform.Scale), 1.0f, 0.0f, 100.0f);
+                        ImGui::DragFloat("Scale", &transform.Scale.x, 1.0f, 0.0f, 1000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
+                        transform.Scale.y = transform.Scale.x;
                     }
-                    ImGui::SameLine();
-                    ImGui::Checkbox("Keep Ratio", &transform.KeepRatio);
 
                     if (ImGui::Button("Apply"))
                     {
-                        if (m_SelectedEntity.HasComponent<LineRendererComponent>())
+                        if (m_SelectedEntity.HasComponent<LineComponent>())
                         {
-                            auto& line = m_SelectedEntity.GetComponent<LineRendererComponent>();
+                            auto& line = m_SelectedEntity.GetComponent<LineComponent>();
                             auto transform = m_SelectedEntity.GetComponent<TransformComponent>().GetTransformMatrix();
                             line.P0 = transform * glm::vec4(line.P0, 1.0f);
                             line.P1 = transform * glm::vec4(line.P1, 1.0f);
+                        } else if (m_SelectedEntity.HasComponent<CircleComponent>())
+                        {
+                            auto& circle = m_SelectedEntity.GetComponent<CircleComponent>();
 
-                            m_SelectedEntity.RemoveComponent<TransformComponent>();
+                            auto& transform = m_SelectedEntity.GetComponent<TransformComponent>();
+                            auto transformMatrix = m_SelectedEntity.GetComponent<TransformComponent>().GetTransformMatrix();
+
+                            circle.Center = transformMatrix * glm::vec4(circle.Center, 1.0f);
+                            circle.Radius = transform.Scale.x * circle.Radius;
                         }
+
+                        m_SelectedEntity.RemoveComponent<TransformComponent>();
                     }
 
                     ImGui::SameLine();
 
                     if (ImGui::Button("Cancel"))
                         m_SelectedEntity.RemoveComponent<TransformComponent>();
-                } else
+                } else  // Normal properties
                 {
-                    if (m_SelectedEntity.HasComponent<LineRendererComponent>())
+                    if (m_SelectedEntity.HasComponent<LineComponent>())
                     {
-                        auto& line = m_SelectedEntity.GetComponent<LineRendererComponent>();
+                        auto& line = m_SelectedEntity.GetComponent<LineComponent>();
                         ImGui::Text(m_SelectedEntity.GetTag().c_str());
 
-                        ImGui::DragFloat2("Point A", glm::value_ptr(line.P0), 1.0f, -2000.0f, 2000.0f);
-                        ImGui::DragFloat2("Point B", glm::value_ptr(line.P1), 1.0f, -2000.0f, 2000.0f);
-                        ImGui::SliderFloat("Width", &line.Width, 0.0f, 1000.0f);
+                        ImGui::DragFloat2("Point A", glm::value_ptr(line.P0), 1.0f, -5000.0f, 5000.0f);
+                        ImGui::DragFloat2("Point B", glm::value_ptr(line.P1), 1.0f, -5000.0f, 5000.0f);
+                        ImGui::DragFloat("Width", &line.Width, 1.0f, 0.0f, 1000.0f);
                         if (line.Style == LineStyle::Dashed)
-                            ImGui::SliderFloat("Dash Length", &line.DashLength, 1, 100);
+                            ImGui::DragFloat("Dash Length", &line.DashLength, 1.0f, 1.0f, 100.0f);
 
                         ImGui::ColorEdit3("Color", glm::value_ptr(line.Color));
-                    } else if (m_SelectedEntity.HasComponent<CircleRendererComponent>())
+                    } else if (m_SelectedEntity.HasComponent<CircleComponent>())
                     {
-                        auto& circle = m_SelectedEntity.GetComponent<CircleRendererComponent>();
+                        auto& circle = m_SelectedEntity.GetComponent<CircleComponent>();
                         ImGui::Text(m_SelectedEntity.GetTag().c_str());
 
-                        ImGui::DragFloat2("Center", glm::value_ptr(circle.Center), 1.0f, -2000.0f, 2000.0f);
-                        ImGui::SliderFloat("Radius", &circle.Radius, 0.0f, 2000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
+                        ImGui::DragFloat2("Center", glm::value_ptr(circle.Center), 1.0f, -5000.0f, 5000.0f);
+                        ImGui::SliderFloat("Radius", &circle.Radius, 0.0f, 5000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
 
                         ImGui::ColorEdit3("Color", glm::value_ptr(circle.Color));
 
                         ImGui::Checkbox("Show Center", &circle.ShowCenter);
-                    } else if (m_SelectedEntity.HasComponent<ArcRendererComponent>())
+                    } else if (m_SelectedEntity.HasComponent<ArcComponent>())
                     {
-                        auto& arc = m_SelectedEntity.GetComponent<ArcRendererComponent>();
+                        auto& arc = m_SelectedEntity.GetComponent<ArcComponent>();
                         ImGui::Text(m_SelectedEntity.GetTag().c_str());
 
                         ImGui::DragFloat2("Center", glm::value_ptr(arc.Center), 1.0f, -2000.0f, 2000.0f);
-                        ImGui::SliderFloat("Radius", &arc.Radius, 0.0f, 2000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
-                        ImGui::SliderFloat("Angle 1", &arc.Angle1, -720.0f, 720.0f);
-                        ImGui::SliderFloat("Angle 2", &arc.Angle2, -720.0f, 720.0f);
+                        ImGui::SliderFloat("Radius", &arc.Radius, 0.0f, 5000.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
+                        ImGui::DragFloat("Angle 1", &arc.Angle1, 1.0f, -5000.0f, 5000.0f);
+                        ImGui::DragFloat("Angle 2", &arc.Angle2, 1.0f, -5000.0f, 5000.0f);
                         ImGui::Checkbox("Major", &arc.Major);
 
                         ImGui::ColorEdit3("Color", glm::value_ptr(arc.Color));
@@ -620,6 +669,20 @@ namespace Grafix
 
                 if (ImGui::IsItemClicked())
                     m_SelectedEntity = entity;
+            }
+
+            // Left-click on blank space to unselect
+            if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                m_SelectedEntity = {};
+
+            // Right-click on blank space
+            if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonDefault_))
+            {
+                // Not done
+                if (ImGui::MenuItem("Create Empty Entity"))
+                    m_ActiveScene->CreateEntity("Empty Entity");
+
+                ImGui::EndPopup();
             }
         }
         ImGui::End();
