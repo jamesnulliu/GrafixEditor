@@ -15,6 +15,7 @@
 * glfw：图形库框架
 * glm：数学库
 * Dear ImGui：图形界面（立即模式）
+* EnTT：实体组件系统
 
 ## 配置方法
 1. 在 https://vulkan.lunarg.com/ 下载Vulkan SDK并安装。
