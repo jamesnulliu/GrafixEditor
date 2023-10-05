@@ -1,137 +1,91 @@
 #include "pch.h"
 #include "PolygonAlgorithm.h"
-#include "LineAlgorithm.h"
 
-#include <ranges>
+#include "LineAlgorithm.h"
 
 namespace Grafix
 {
-    ////void PolygonAlgorithm::Draw(const std::vector<glm::vec3>& vertices, const glm::vec4& color, bool closed)
-    ////{
-    ////    if (vertices.size() < 2)
-    ////        return;
+    void PolygonAlgorithm::Draw(const std::vector<glm::vec2>& vertices, const glm::vec3& color)
+    {
+        Scanline(vertices, color);
+    }
 
-    ////    if (!closed)
-    ////    {
-    ////        // Draw lines between vertices
-    ////        for (int i = 0; i < vertices.size() - 1; i++)
-    ////            LineAlgorithm::Draw(vertices[i], vertices[i + 1], color);
+    void PolygonAlgorithm::Scanline(const std::vector<glm::vec2>& vertices, const glm::vec3& color)
+    {
+        int yMax = (int)(vertices[0].y + 0.5);
+        int yMin = (int)(vertices[0].y + 0.5);
 
-    ////        return;
-    ////    }
+        for (int i = 1; i < vertices.size(); ++i)
+        {
+            int roundedY = (int)(vertices[i].y + 0.5);
 
-    ////    int yMin = vertices[0].y, yMax = vertices[0].y;
-    ////    for (int i = 1; i < vertices.size(); i++)
-    ////    {
-    ////        if (vertices[i].y < yMin)
-    ////            yMin = vertices[i].y;
+            if (roundedY > yMax)
+                yMax = roundedY;
 
-    ////        if (vertices[i].y > yMax)
-    ////            yMax = vertices[i].y;
-    ////    }
+            if (roundedY < yMin)
+                yMin = roundedY;
+        }
 
-    ////    std::vector<std::list<Edge>> ET(yMax + 1);
-    ////    std::list<Edge> AEL;
+        // Initialize ET
+        EdgeTable ET(yMax + 1);
 
-    ////    for (int i = 0; i < vertices.size(); i++)
-    ////    {
-    ////        Edge* ed = NULL;
-    ////        if (i < x.size() - 1 && y[i] < y[i + 1])
-    ////        {
-    ////            ed = new Edge;
-    ////            ed->ymax = y[i + 1];
-    ////            ed->ymin = y[i];
-    ////            ed->x = x[i] * 1.0;
-    ////            ed->deltax = (x[i + 1] - x[i]) * 1.0 / (y[i + 1] - y[i]);
-    ////            ed->nextEdge = NULL;
-    ////        } else if (i < x.size() - 1 && y[i] > y[i + 1])
-    ////        {
-    ////            ed = new Edge;
-    ////            ed->ymax = y[i];
-    ////            ed->ymin = y[i + 1];
-    ////            ed->x = x[i + 1] * 1.0;
-    ////            ed->deltax = (x[i + 1] - x[i]) * 1.0 / (y[i + 1] - y[i]);
-    ////            ed->nextEdge = NULL;
-    ////        } else if (i == x.size() - 1)
-    ////        {
-    ////            if (y[i] < y[0])
-    ////            {
-    ////                ed = new Edge;
-    ////                ed->ymax = y[0];
-    ////                ed->ymin = y[i];
-    ////                ed->x = x[i] * 1.0;
-    ////                ed->deltax = (x[0] - x[i]) * 1.0 / (y[0] - y[i]);
-    ////                ed->nextEdge = NULL;
-    ////            } else if (y[0] < y[i])
-    ////            {
-    ////                ed = new Edge;
-    ////                ed->ymax = y[i];
-    ////                ed->ymin = y[0];
-    ////                ed->x = x[0] * 1.0;
-    ////                ed->deltax = (x[0] - x[i]) * 1.0 / (y[0] - y[i]);
-    ////                ed->nextEdge = NULL;
-    ////            }
-    ////        }
-    ////        if (ed == NULL)
-    ////            continue;
+        for (int i = 0; i < vertices.size(); ++i)
+        {
+            const glm::vec2* bottomVertex = &vertices[i];
+            const glm::vec2* topVertex = (i + 1 < vertices.size()) ? &vertices[i + 1] : &vertices[0];
 
-    ////        if (ET[ed->ymin] == NULL)
-    ////        {
-    ////            ET[ed->ymin] = ed;
-    ////        } else if (ET[ed->ymin]->x > ed->x || (ET[ed->ymin]->x == ed->x && ET[ed->ymin]->deltax < ed->deltax))
-    ////        {
-    ////            ed->nextEdge = ET[ed->ymin]->nextEdge;
-    ////            ET[ed->ymin]->nextEdge = ed;
-    ////        } else if (ET[ed->ymin]->nextEdge == NULL)
-    ////        {
-    ////            ed->nextEdge = ET[ed->ymin];
-    ////            ET[ed->ymin] = ed;
-    ////        } else
-    ////        {
-    ////            Edge* ep = ET[ed->ymin];
-    ////            while (ep->nextEdge->nextEdge != NULL && (ep->nextEdge->nextEdge->x < ed->x || (ep->nextEdge->nextEdge->x == ed->x && ep->nextEdge->nextEdge->deltax > ed->deltax)))
-    ////            {
-    ////                ep = ep->nextEdge;
-    ////            }
-    ////            ed->nextEdge = ep->nextEdge;
-    ////            ep->nextEdge = ed;
-    ////        }
-    ////    }
-    ////    for (int i = Ymin; i < Ymax; i++)
-    ////    {
-    ////        if (ET[i] != NULL)
-    ////        {
-    ////            Edge* eq = ET[i];
-    ////            while (eq != NULL)
-    ////            {
-    ////                AEL.push_back(eq);
-    ////                eq = eq->nextEdge;
-    ////            }
-    ////            std::ranges::sort(AEL);
-    ////        }
-    ////        for (int k = 0; k < AEL.size(); k++)
-    ////        {
-    ////            if (AEL[k]->ymax == i)
-    ////            {
-    ////                AEL.erase(AEL.begin() + k);
-    ////            }
-    ////        }
-    ////        int k = 0;
+            int bottomY = (int)(bottomVertex->y + 0.5), topY = (int)(topVertex->y + 0.5);
+            if (bottomY == topY)
+            {
+                continue;
+            } else if (bottomY > topY)
+            {
+                std::swap(bottomVertex, topVertex);
+                std::swap(bottomY, topY);
+            }
 
-    ////        while (k < AEL.size())
-    ////        {
-    ////            Edge* m = AEL[k];
-    ////            k++;
-    ////            if (k >= AEL.size())
-    ////                break;
-    ////            Edge* n = AEL[k];
-    ////            k++;
-    ////            for (int j = (int)(m->x + 0.5); j < (int)(n->x + 0.5); j++)
-    ////                SetPixel(i, j, color);
-    ////        }
+            float deltaX = (topVertex->x - bottomVertex->x) / (topVertex->y - bottomVertex->y);
 
-    ////        for (k = 0; k < AEL.size(); k++)
-    ////            AEL[k].X += AEL[k].DeltaX;
-    ////    }
-    ////}
+            Edge edge(topY, bottomVertex->x, deltaX);
+            ET[bottomY].push_back(std::move(edge));
+
+            std::sort(ET[bottomY].begin(), ET[bottomY].end());
+        }
+
+        // Create AEL
+        ActiveEdgeTable AEL{};
+
+        for (int y = yMin; y < yMax; ++y)
+        {
+            // If there are new edges, add them to AEL
+            if (!ET[y].empty())
+            {
+                for (Edge& edge : ET[y])
+                    AEL.push_back(edge);
+            }
+
+            std::sort(AEL.begin(), AEL.end());
+
+            // If there are edges that end at y, remove them from AEL
+            for (int i = 0; i < AEL.size(); ++i)
+            {
+                if (y == AEL[i].YMax)
+                {
+                    AEL.erase(AEL.begin() + i);
+                    --i;
+                }
+            }
+
+            // Draw the scanline
+            for (int i = 0; i < AEL.size(); i += 2)
+            {
+                int x1 = (int)(AEL[i].X + 0.5), x2 = (int)(AEL[i + 1].X + 0.5);
+                for (int x = x1; x < x2; ++x)
+                    SetPixel(x, y, color);
+            }
+
+            for (Edge& edge : AEL)
+                edge.X += edge.DeltaX;
+        }
+    }
 }
