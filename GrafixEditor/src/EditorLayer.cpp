@@ -691,7 +691,7 @@ namespace Grafix
                         auto& circle = m_SelectedEntity.GetComponent<CircleComponent>();
 
                         ImGui::DragFloat2("Center", glm::value_ptr(circle.Center), 0.5f);
-                        ImGui::DragFloat("Radius", &circle.Radius, 0.5f, 0.0f, 0.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
+                        ImGui::DragFloat("Radius", &circle.Radius, 0.5f, 0.0f, std::numeric_limits<float>::max());
 
                         ImGui::ColorEdit3("Color", glm::value_ptr(circle.Color));
 
@@ -701,7 +701,7 @@ namespace Grafix
                         auto& arc = m_SelectedEntity.GetComponent<ArcComponent>();
 
                         ImGui::DragFloat2("Center", glm::value_ptr(arc.Center), 0.5f);
-                        ImGui::DragFloat("Radius", &arc.Radius, 0.5f, 0.0f, 0.0f, "%.1f", ImGuiSliderFlags_Logarithmic);
+                        ImGui::DragFloat("Radius", &arc.Radius, 0.5f, 0.0f, std::numeric_limits<float>::max());
                         ImGui::DragFloat("Angle 1", &arc.Angle1, 0.5f);
                         ImGui::DragFloat("Angle 2", &arc.Angle2, 0.5f);
                         ImGui::Checkbox("Major", &arc.Major);
