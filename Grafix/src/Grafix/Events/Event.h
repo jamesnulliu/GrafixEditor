@@ -54,7 +54,7 @@ namespace Grafix
         {
             if (m_Event.GetEventType() == T::GetStaticType())
             {
-                GF_INFO("Event dispatched: {0}", m_Event.ToString());
+                ////GF_INFO("Event dispatched: {0}", m_Event.ToString());
                 m_Event.Handled |= func(static_cast<T&>(m_Event));
                 return true;
             }

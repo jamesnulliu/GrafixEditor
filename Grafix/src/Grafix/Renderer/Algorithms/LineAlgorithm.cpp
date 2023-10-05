@@ -3,13 +3,13 @@
 
 namespace Grafix
 {
-    void LineAlgorithm::Draw(const glm::vec2& p0, const glm::vec2& p1, const glm::vec4& color, LineStyle style, float dashLength)
+    void LineAlgorithm::Draw(const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, LineStyle style, float dashLength)
     {
         Midpoint(p0, p1, color, style, (uint32_t)dashLength);
         ////Bresenham(p0, p1, color, style, (uint32_t)dashLength);
     }
 
-    void LineAlgorithm::Midpoint(const glm::vec2& p0, const glm::vec2& p1, const glm::vec4& color, LineStyle style, uint32_t dashLength)
+    void LineAlgorithm::Midpoint(const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, LineStyle style, uint32_t dashLength)
     {
         int x0 = (int)p0.x, y0 = (int)p0.y;
         int x1 = (int)p1.x, y1 = (int)p1.y;
@@ -45,7 +45,7 @@ namespace Grafix
         int x = x0, y = y0;
 
         int count = 0;
-        while (x < x1)
+        while (x <= x1)
         {
             // Set pixel
             if (style == LineStyle::Solid ||
@@ -67,7 +67,7 @@ namespace Grafix
         }
     }
 
-    void LineAlgorithm::Bresenham(const glm::vec2& p0, const glm::vec2& p1, const glm::vec4& color, LineStyle style, uint32_t dashLength)
+    void LineAlgorithm::Bresenham(const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, LineStyle style, uint32_t dashLength)
     {
         int x0 = (int)p0.x, y0 = (int)p0.y;
         int x1 = (int)p1.x, y1 = (int)p1.y;

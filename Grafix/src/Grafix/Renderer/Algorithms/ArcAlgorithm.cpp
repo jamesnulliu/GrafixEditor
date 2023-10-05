@@ -6,7 +6,7 @@
 
 namespace Grafix
 {
-    void ArcAlgorithm::Draw(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec4& color, bool showCenter, bool showRadius)
+    void ArcAlgorithm::Draw(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color, bool showCenter, bool showRadius)
     {
         if (showCenter)
             DrawAuxCross(center);
@@ -23,7 +23,7 @@ namespace Grafix
         Midpoint(center, radius, angle1, angle2, major, color);
     }
 
-    void ArcAlgorithm::Midpoint(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec4& color)
+    void ArcAlgorithm::Midpoint(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color)
     {
         // Restrict angles to 0 <= angle < 360
         angle1 = glm::mod(angle1, 360.0f);
@@ -55,7 +55,7 @@ namespace Grafix
         }
     }
 
-    void ArcAlgorithm::SetArcPixels(int centerX, int centerY, int x, int y, float radius, float beginAngle, float endAngle, const glm::vec4& color)
+    void ArcAlgorithm::SetArcPixels(int centerX, int centerY, int x, int y, float radius, float beginAngle, float endAngle, const glm::vec3& color)
     {
         if (IsInRange(x, y, beginAngle, endAngle))
             SetPixel(centerX + x, centerY + y, color);

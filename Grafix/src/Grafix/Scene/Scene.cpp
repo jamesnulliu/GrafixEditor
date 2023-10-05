@@ -48,6 +48,6 @@ namespace Grafix
     void Scene::Clear()
     {
         m_Registry.clear();
-        ////m_Entities.clear();
+        m_Entities.clear();
     }
 }

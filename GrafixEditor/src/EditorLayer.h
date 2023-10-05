@@ -10,9 +10,10 @@ namespace Grafix
         enum class ToolState : uint8_t
         {
             Move = 0,
-            Pen,
+            Bucket,
             Line, Arc,
-            Rectangle, Circle
+            Circle,
+            Pen
         };
     public:
         EditorLayer();
@@ -39,9 +40,17 @@ namespace Grafix
         void UI_MenuBar();
         void UI_Viewport();
         void UI_Toolbar();
-        void UI_Information();
-        void UI_Settings();
+        void UI_Info();
+        void UI_Color();
+        void UI_Properties();
         void UI_Entities();
+
+        // Temp
+        void DrawFloat3Control(const std::string& label, glm::vec3& values, float columnWidth = 100.0f);
+        void DrawFloat3Control(const std::string& label, float* x, float* y, float* z, float columnWidth = 100.0f);
+
+        void BeginTransforming();
+        void EndTransforming();
     private:
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
         glm::vec2 m_ViewportBounds[2];
@@ -58,8 +67,10 @@ namespace Grafix
         ToolState m_ToolState = ToolState::Move;
         bool m_IsDrawing = false;
         int m_OperationState = 1;
-        bool m_IsConfirmed = false;
 
-        Entity m_EditingEntity;
+        Entity m_SelectedEntity{};
+        glm::vec3 m_PickedColor{ 0.9f, 0.9f, 0.9f };
+
+        bool m_IsModalOpen = false;
     };
 }

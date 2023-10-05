@@ -3,7 +3,7 @@
 
 namespace Grafix
 {
-    void CircleAlgorithm::Draw(const glm::vec2& center, float radius, const glm::vec4& color, bool showCenter)
+    void CircleAlgorithm::Draw(const glm::vec2& center, float radius, const glm::vec3& color, bool showCenter)
     {
         if (showCenter)
             DrawAuxCross(center);
@@ -11,7 +11,7 @@ namespace Grafix
         Midpoint(center, radius, color);
     }
 
-    void CircleAlgorithm::Midpoint(const glm::vec2& center, float radius, const glm::vec4& color)
+    void CircleAlgorithm::Midpoint(const glm::vec2& center, float radius, const glm::vec3& color)
     {
         int centerX = (int)center.x;
         int centerY = (int)center.y;
@@ -35,7 +35,7 @@ namespace Grafix
         }
     }
 
-    void CircleAlgorithm::SetCirclePixels(int centerX, int centerY, int x, int y, const glm::vec4& color)
+    void CircleAlgorithm::SetCirclePixels(int centerX, int centerY, int x, int y, const glm::vec3& color)
     {
         SetPixel(centerX + x, centerY + y, color);
         SetPixel(centerX + y, centerY + x, color);

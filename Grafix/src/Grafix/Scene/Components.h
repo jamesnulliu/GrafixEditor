@@ -5,28 +5,47 @@
 
 namespace Grafix
 {
+    ////struct SolidColorComponent final
+    ////{
+    ////    glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
+
+    ////    SolidColorComponent() = default;
+    ////    SolidColorComponent(const SolidColorComponent&) = default;
+    ////    SolidColorComponent(const glm::vec4& color) : Color(color) {}
+    ////};
+
     struct TransformComponent final
     {
+        glm::vec3 PivotPoint{ 0.0f, 0.0f, 0.0f };
+
         glm::vec3 Translation{ 0.0f, 0.0f, 0.0f };
         glm::vec3 Rotation{ 0.0f, 0.0f, 0.0f };
         glm::vec3 Scale{ 1.0f, 1.0f, 1.0f };
 
+        bool KeepRatio = true;
+
         TransformComponent() = default;
         TransformComponent(const TransformComponent&) = default;
-        TransformComponent(const glm::vec3& translation) : Translation(translation) {}
 
-        glm::mat4 GetTransform() const
+        // TODO: Implement translate, rotate and scale ourselves.
+        glm::mat4 GetTransformMatrix() const
         {
-            // TODO: Implement translate, rotate and scale ourselves.
+            glm::mat4 initialTranslationMatrix = glm::translate(glm::mat4(1.0f), -PivotPoint);
+
             glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), Translation);
 
-            glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), Rotation.x, glm::vec3(1.0f, 0.0f, 0.0f))
-                * glm::rotate(glm::mat4(1.0f), Rotation.y, glm::vec3(0.0f, 1.0f, 0.0f))
-                * glm::rotate(glm::mat4(1.0f), Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+            glm::vec3 rotation = glm::radians(Rotation);
+            glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), rotation.x, glm::vec3(1.0f, 0.0f, 0.0f))
+                * glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 1.0f, 0.0f))
+                * glm::rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
             glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), Scale);
 
-            return translationMatrix * rotationMatrix * scaleMatrix;
+            glm::mat4 transformMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+
+            glm::mat4 finalTranslationMatrix = glm::translate(glm::mat4(1.0f), PivotPoint);
+
+            return finalTranslationMatrix * transformMatrix * initialTranslationMatrix;
         }
     };
 
@@ -48,38 +67,38 @@ namespace Grafix
         Solid, Dashed
     };
 
-    struct LineRendererComponent final
+    struct LineComponent final
     {
         glm::vec3 P0{ 400.0f, 500.0f, 0.0f };
         glm::vec3 P1{ 500.0f, 500.0f, 0.0f };
 
-        glm::vec4 Color{ 0.8f, 0.8f, 0.8f, 1.0f };
+        glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
 
         float Width = 1.0f;
         LineStyle Style = LineStyle::Solid;
 
         float DashLength = 1.0f;
 
-        LineRendererComponent() = default;
-        LineRendererComponent(const LineRendererComponent&) = default;
+        LineComponent() = default;
+        LineComponent(const LineComponent&) = default;
     };
 
-    struct CircleRendererComponent final
+    struct CircleComponent final
     {
         glm::vec3 Center{ 450.0f, 500.0f, 0.0f };
-        float Radius = 50.0f;
+        float Radius = 0.0f;
 
-        glm::vec4 Color{ 0.8f, 0.8f, 0.8f, 1.0f };
+        glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
 
         // Aux
         bool ShowCenter = false;
         bool ShowRadius = false;
 
-        CircleRendererComponent() = default;
-        CircleRendererComponent(const CircleRendererComponent&) = default;
+        CircleComponent() = default;
+        CircleComponent(const CircleComponent&) = default;
     };
 
-    struct ArcRendererComponent final
+    struct ArcComponent final
     {
         glm::vec3 Center{ 450.0f, 500.0f, 0.0f };
         float Radius = 50.0f;
@@ -87,44 +106,24 @@ namespace Grafix
         float Angle2 = 60.0f;
         bool Major = false;
 
-        glm::vec4 Color{ 0.8f, 0.8f, 0.8f, 1.0f };
+        glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
 
         // Aux
         bool ShowCenter = false;
         bool ShowRadius = false;
 
-        ArcRendererComponent() = default;
-        ArcRendererComponent(const ArcRendererComponent&) = default;
+        ArcComponent() = default;
+        ArcComponent(const ArcComponent&) = default;
     };
 
-    // NOT DONE
-    struct PolygonRendererComponent final
+    struct PolygonComponent final
     {
         std::vector<glm::vec3> Vertices;
-        void AddVertex(const glm::vec3& vertex)
-        {
-            if (!Vertices.empty())
-            {
-                // The last vertex is the same as the new one.
-                if (glm::distance(Vertices.back(), vertex) < 2.0f)
-                    return;
+        bool IsClosed = false;
 
-                // The first vertex is the same as the new one.
-                if (glm::distance(Vertices.front(), vertex) < 2.0f)
-                {
-                    m_Closed = true;
-                    return;
-                }
-            }
+        glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
 
-            Vertices.push_back(vertex);
-        }
-
-        bool IsClosed() const { return m_Closed; }
-
-        PolygonRendererComponent() = default;
-        PolygonRendererComponent(const PolygonRendererComponent&) = default;
-    private:
-        bool m_Closed = false;
+        PolygonComponent() = default;
+        PolygonComponent(const PolygonComponent&) = default;
     };
 }
