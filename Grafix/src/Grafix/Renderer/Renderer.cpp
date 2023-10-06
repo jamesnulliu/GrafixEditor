@@ -14,9 +14,8 @@ namespace Grafix
     {
         GraphicsAlgorithm::UpdatePixelData(m_Pixels, m_Image->GetWidth(), m_Image->GetHeight());
 
-        // Background
-        uint32_t backgroundColor = RGBToUint32(scene.GetBackgroundColor());
-        std::fill(m_Pixels, m_Pixels + m_Image->GetWidth() * m_Image->GetHeight(), backgroundColor);
+        // Clear color
+        std::fill(m_Pixels, m_Pixels + m_Image->GetWidth() * m_Image->GetHeight(), RGBToUint32(m_ClearColor));
 
         // Entities
         for (Entity entity : scene.GetEntities())

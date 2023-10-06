@@ -30,16 +30,12 @@ namespace Grafix
         void OnUpdate();
         void OnUpdateEditor();
 
-        glm::vec3& GetBackgroundColor() { return m_BackgroundColor; }
-        const glm::vec3& GetBackgroundColor() const { return m_BackgroundColor; }
-
         void Clear();
     private:
         entt::registry m_Registry;
         std::vector<Entity> m_Entities{};
 
-        glm::vec3 m_BackgroundColor{ 0.258f, 0.291f, 0.314f };
-
         friend class Entity;
+        friend class HierarchyPanel;
     };
 }
