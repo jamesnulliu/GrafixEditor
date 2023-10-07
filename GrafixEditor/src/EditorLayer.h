@@ -2,6 +2,8 @@
 
 #include "Grafix.h"
 
+#include "Panels/HierarchyPanel.h"
+
 namespace Grafix
 {
     class EditorLayer final : public Layer
@@ -42,15 +44,8 @@ namespace Grafix
         void UI_Toolbar();
         void UI_Info();
         void UI_Color();
-        void UI_Properties();
-        void UI_Entities();
-
-        // Temp
-        void DrawFloat3Control(const std::string& label, glm::vec3& values, float columnWidth = 100.0f);
-        void DrawFloat3Control(const std::string& label, float* x, float* y, float* z, float columnWidth = 100.0f);
 
         void BeginTransforming();
-        void EndTransforming();
     private:
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
         glm::vec2 m_ViewportBounds[2];
@@ -58,19 +53,18 @@ namespace Grafix
 
         glm::i32vec2 m_MousePosInViewport{ 0, 0 };
 
-        std::shared_ptr<Scene> m_EditorScene = nullptr;
         std::shared_ptr<Scene> m_ActiveScene = nullptr;
 
-        EditorCamera m_EditorCamera;
         Renderer m_Renderer;
+        std::shared_ptr<Scene> m_EditorScene = nullptr;
+        EditorCamera m_EditorCamera;
 
         ToolState m_ToolState = ToolState::Move;
         bool m_IsDrawing = false;
         int m_OperationState = 1;
 
-        Entity m_SelectedEntity{};
         glm::vec3 m_PickedColor{ 0.9f, 0.9f, 0.9f };
 
-        bool m_IsModalOpen = false;
+        HierarchyPanel m_HierarchyPanel;
     };
 }

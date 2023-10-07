@@ -21,6 +21,8 @@ namespace Grafix
     {
         m_EditorScene = std::make_shared<Scene>();
         m_ActiveScene = m_EditorScene;
+
+        m_HierarchyPanel.BindScene(m_EditorScene);
     }
 
     void EditorLayer::OnUpdate()
@@ -91,8 +93,8 @@ namespace Grafix
             UI_Color();
             UI_Toolbar();
             UI_Info();
-            UI_Properties();
-            UI_Entities();
+
+            m_HierarchyPanel.OnUIRender();
         }
         ImGui::End(); // DockSpace
 
@@ -124,47 +126,47 @@ namespace Grafix
             {
                 GF_INFO("Switched to move tool.");
                 m_ToolState = ToolState::Move;
-                m_SelectedEntity = {};
+                m_HierarchyPanel.SetSelectedEntity({});
                 break;
             }
             case Key::B:
             {
                 GF_INFO("Switched to Bucket tool.");
                 m_ToolState = ToolState::Bucket;
-                m_SelectedEntity = {};
+                m_HierarchyPanel.SetSelectedEntity({});
                 break;
             }
             case Key::L:
             {
                 GF_INFO("Switched to line tool.");
                 m_ToolState = ToolState::Line;
-                m_SelectedEntity = {};
+                m_HierarchyPanel.SetSelectedEntity({});
                 break;
             }
             case Key::A:
             {
                 GF_INFO("Switched to arc tool.");
                 m_ToolState = ToolState::Arc;
-                m_SelectedEntity = {};
+                m_HierarchyPanel.SetSelectedEntity({});
                 break;
             }
             case Key::C:
             {
                 GF_INFO("Switched to circle tool.");
                 m_ToolState = ToolState::Circle;
-                m_SelectedEntity = {};
+                m_HierarchyPanel.SetSelectedEntity({});
                 break;
             }
             case Key::P:
             {
                 GF_INFO("Switched to pen tool.");
                 m_ToolState = ToolState::Pen;
-                m_SelectedEntity = {};
+                m_HierarchyPanel.SetSelectedEntity({});
                 break;
             }
             case Key::T:
             {
-                if (control && m_SelectedEntity)
+                if (control && m_HierarchyPanel.GetSelectedEntity())
                     BeginTransforming();
 
                 break;
@@ -212,8 +214,10 @@ namespace Grafix
             {
                 m_IsDrawing = true;
 
-                m_SelectedEntity = m_ActiveScene->CreateEntity("Line");
-                auto& line = m_SelectedEntity.AddComponent<LineComponent>();
+                Entity entity = m_ActiveScene->CreateEntity("Line");
+                m_HierarchyPanel.SetSelectedEntity(entity);
+
+                auto& line = entity.AddComponent<LineComponent>();
 
                 line.P0 = { m_MousePosInViewport, 1.0f };
                 line.P1 = { m_MousePosInViewport, 1.0f };
@@ -221,14 +225,15 @@ namespace Grafix
             }
         } else
         {
-            auto& line = m_SelectedEntity.GetComponent<LineComponent>();
+            Entity entity = m_HierarchyPanel.GetSelectedEntity();
+            auto& line = entity.GetComponent<LineComponent>();
 
             // If ESC is pressed, cancel drawing
             if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsMouseClicked(ImGuiMouseButton_Right))
             {
                 m_IsDrawing = false;
-                m_ActiveScene->RemoveEntity(m_SelectedEntity);
-                m_SelectedEntity = {};
+                m_ActiveScene->RemoveEntity(entity);
+                m_HierarchyPanel.SetSelectedEntity({});
                 return;
             }
 
@@ -251,8 +256,8 @@ namespace Grafix
                 // If the line is too short, remove it
                 if (glm::distance(line.P0, line.P1) < 0.1f)
                 {
-                    m_ActiveScene->RemoveEntity(m_SelectedEntity);
-                    m_SelectedEntity = {};
+                    m_ActiveScene->RemoveEntity(entity);
+                    m_HierarchyPanel.SetSelectedEntity({});
                 }
             }
         }
@@ -267,8 +272,10 @@ namespace Grafix
                 m_IsDrawing = true;
                 m_OperationState = 0;
 
-                m_SelectedEntity = m_ActiveScene->CreateEntity("Arc");
-                auto& arc = m_SelectedEntity.AddComponent<ArcComponent>();
+                Entity entity = m_ActiveScene->CreateEntity("Arc");
+                m_HierarchyPanel.SetSelectedEntity(entity);
+
+                auto& arc = entity.AddComponent<ArcComponent>();
 
                 arc.Center = { m_MousePosInViewport, 1.0f };
                 arc.Radius = 0.0f;
@@ -279,15 +286,17 @@ namespace Grafix
             }
         } else
         {
-            auto& arc = m_SelectedEntity.GetComponent<ArcComponent>();
+            Entity entity = m_HierarchyPanel.GetSelectedEntity();
+            auto& arc = entity.GetComponent<ArcComponent>();
+
             arc.Color = m_PickedColor;
 
             // If ESC is pressed, cancel drawing
             if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsMouseClicked(ImGuiMouseButton_Right))
             {
                 m_IsDrawing = false;
-                m_ActiveScene->RemoveEntity(m_SelectedEntity);
-                m_SelectedEntity = {};
+                m_ActiveScene->RemoveEntity(entity);
+                m_HierarchyPanel.SetSelectedEntity({});
                 return;
             }
 
@@ -311,8 +320,8 @@ namespace Grafix
                     if (radius < 0.1f)
                     {
                         m_IsDrawing = false;
-                        m_ActiveScene->RemoveEntity(m_SelectedEntity);
-                        m_SelectedEntity = {};
+                        m_ActiveScene->RemoveEntity(entity);
+                        m_HierarchyPanel.SetSelectedEntity({});
                     } else
                     {
                         ++m_OperationState;
@@ -355,8 +364,10 @@ namespace Grafix
             {
                 m_IsDrawing = true;
 
-                m_SelectedEntity = m_ActiveScene->CreateEntity("Circle");
-                auto& circle = m_SelectedEntity.AddComponent<CircleComponent>();
+                Entity entity = m_ActiveScene->CreateEntity("Circle");
+                m_HierarchyPanel.SetSelectedEntity(entity);
+
+                auto& circle = entity.AddComponent<CircleComponent>();
 
                 circle.Center = { m_MousePosInViewport, 1.0f };
                 circle.Color = m_PickedColor;
@@ -364,14 +375,15 @@ namespace Grafix
             }
         } else
         {
-            auto& circle = m_SelectedEntity.GetComponent<CircleComponent>();
+            Entity entity = m_HierarchyPanel.GetSelectedEntity();
+            auto& circle = entity.GetComponent<CircleComponent>();
 
             // If ESC is pressed, cancel drawing
             if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsMouseClicked(ImGuiMouseButton_Right))
             {
                 m_IsDrawing = false;
-                m_ActiveScene->RemoveEntity(m_SelectedEntity);
-                m_SelectedEntity = {};
+                m_ActiveScene->RemoveEntity(entity);
+                m_HierarchyPanel.SetSelectedEntity({});
                 return;
             }
 
@@ -386,8 +398,8 @@ namespace Grafix
                 // If the radius is too small, remove the circle
                 if (circle.Radius < 0.1f)
                 {
-                    m_ActiveScene->RemoveEntity(m_SelectedEntity);
-                    m_SelectedEntity = {};
+                    m_ActiveScene->RemoveEntity(entity);
+                    m_HierarchyPanel.SetSelectedEntity({});
                 }
             }
         }
@@ -401,8 +413,10 @@ namespace Grafix
             {
                 m_IsDrawing = true;
 
-                m_SelectedEntity = m_ActiveScene->CreateEntity("Polygon");
-                auto& polygon = m_SelectedEntity.AddComponent<PolygonComponent>();
+                Entity entity = m_ActiveScene->CreateEntity("Polygon");
+                m_HierarchyPanel.SetSelectedEntity(entity);
+
+                auto& polygon = entity.AddComponent<PolygonComponent>();
 
                 polygon.Vertices.push_back({ m_MousePosInViewport, 0.0f });
                 polygon.Color = m_PickedColor;
@@ -410,14 +424,15 @@ namespace Grafix
             }
         } else
         {
-            auto& polygon = m_SelectedEntity.GetComponent<PolygonComponent>();
+            Entity entity = m_HierarchyPanel.GetSelectedEntity();
+            auto& polygon = entity.GetComponent<PolygonComponent>();
 
             // If ESC is pressed, cancel drawing
             if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsMouseClicked(ImGuiMouseButton_Right))
             {
                 m_IsDrawing = false;
-                m_ActiveScene->RemoveEntity(m_SelectedEntity);
-                m_SelectedEntity = {};
+                m_ActiveScene->RemoveEntity(entity);
+                m_HierarchyPanel.SetSelectedEntity({});
                 return;
             }
 
@@ -431,8 +446,8 @@ namespace Grafix
 
                 if (polygon.Vertices.size() < 2)
                 {
-                    m_ActiveScene->RemoveEntity(m_SelectedEntity);
-                    m_SelectedEntity = {};
+                    m_ActiveScene->RemoveEntity(entity);
+                    m_HierarchyPanel.SetSelectedEntity({});
                     return;
                 }
             }
@@ -457,16 +472,8 @@ namespace Grafix
 
             if (ImGui::BeginMenu("Edit"))
             {
-                if (ImGui::MenuItem("Transform", nullptr, false, m_SelectedEntity))
+                if (ImGui::MenuItem("Transform", nullptr, false, m_HierarchyPanel.GetSelectedEntity()))
                     BeginTransforming();
-
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("Entity"))
-            {
-                ////if (ImGui::MenuItem("Delete"), nullptr, false, m_SelectedEntity)
-                ////    ImGui::OpenPopup("Warning");
 
                 ImGui::EndMenu();
             }
@@ -520,42 +527,42 @@ namespace Grafix
             {
                 GF_INFO("Switched to move tool.");
                 m_ToolState = ToolState::Move;
-                m_SelectedEntity = {};
+                m_HierarchyPanel.SetSelectedEntity({});
             }
 
             if (ImGui::Button("Bucket", ImVec2{ 80.0f, 30.0f }))
             {
                 GF_INFO("Switched to Bucket tool.");
                 m_ToolState = ToolState::Bucket;
-                m_SelectedEntity = {};
+                m_HierarchyPanel.SetSelectedEntity({});
             }
 
             if (ImGui::Button("Line", ImVec2{ 80.0f, 30.0f }))
             {
                 GF_INFO("Switched to line tool.");
                 m_ToolState = ToolState::Line;
-                m_SelectedEntity = {};
+                m_HierarchyPanel.SetSelectedEntity({});
             }
 
             if (ImGui::Button("Arc", ImVec2{ 80.0f, 30.0f }))
             {
                 GF_INFO("Switched to arc tool.");
                 m_ToolState = ToolState::Arc;
-                m_SelectedEntity = {};
+                m_HierarchyPanel.SetSelectedEntity({});
             }
 
             if (ImGui::Button("Circle", ImVec2{ 80.0f, 30.0f }))
             {
                 GF_INFO("Switched to circle tool.");
                 m_ToolState = ToolState::Circle;
-                m_SelectedEntity = {};
+                m_HierarchyPanel.SetSelectedEntity({});
             }
 
             if (ImGui::Button("Pen", ImVec2{ 80.0f, 30.0f }))
             {
                 GF_INFO("Switched to pen tool.");
                 m_ToolState = ToolState::Pen;
-                m_SelectedEntity = {};
+                m_HierarchyPanel.SetSelectedEntity({});
             }
         }
         ImGui::End();
@@ -579,26 +586,28 @@ namespace Grafix
     {
         ImGui::Begin("Color");
         {
-            if (m_SelectedEntity)
+            Entity selectedEntity = m_HierarchyPanel.GetSelectedEntity();
+
+            if (selectedEntity)
             {
-                if (m_SelectedEntity.HasComponent<LineComponent>())
+                if (selectedEntity.HasComponent<LineComponent>())
                 {
-                    auto& line = m_SelectedEntity.GetComponent<LineComponent>();
+                    auto& line = selectedEntity.GetComponent<LineComponent>();
                     m_PickedColor = line.Color;
                     ImGui::ColorPicker3("Color", glm::value_ptr(line.Color));
-                } else if (m_SelectedEntity.HasComponent<ArcComponent>())
+                } else if (selectedEntity.HasComponent<ArcComponent>())
                 {
-                    auto& arc = m_SelectedEntity.GetComponent<ArcComponent>();
+                    auto& arc = selectedEntity.GetComponent<ArcComponent>();
                     m_PickedColor = arc.Color;
                     ImGui::ColorPicker3("Color", glm::value_ptr(arc.Color));
-                } else if (m_SelectedEntity.HasComponent<CircleComponent>())
+                } else if (selectedEntity.HasComponent<CircleComponent>())
                 {
-                    auto& circle = m_SelectedEntity.GetComponent<CircleComponent>();
+                    auto& circle = selectedEntity.GetComponent<CircleComponent>();
                     m_PickedColor = circle.Color;
                     ImGui::ColorPicker3("Color", glm::value_ptr(circle.Color));
-                } else if (m_SelectedEntity.HasComponent<PolygonComponent>())
+                } else if (selectedEntity.HasComponent<PolygonComponent>())
                 {
-                    auto& polygon = m_SelectedEntity.GetComponent<PolygonComponent>();
+                    auto& polygon = selectedEntity.GetComponent<PolygonComponent>();
                     m_PickedColor = polygon.Color;
                     ImGui::ColorPicker3("Color", glm::value_ptr(polygon.Color));
                 }
@@ -610,247 +619,26 @@ namespace Grafix
         ImGui::End();
     }
 
-    void EditorLayer::UI_Properties()
-    {
-        ImGui::Begin("Properties");
-        {
-            if (m_SelectedEntity)
-            {
-                if (m_SelectedEntity.HasComponent<TransformComponent>())
-                {
-                    auto& transform = m_SelectedEntity.GetComponent<TransformComponent>();
-                    ImGui::Text("Transform");
-
-                    DrawFloat3Control("Pivot Point", transform.PivotPoint);
-
-                    DrawFloat3Control("Position", transform.Translation);
-                    DrawFloat3Control("Rotation", transform.Rotation);
-                    DrawFloat3Control("Scale", transform.Scale);
-
-                    if (ImGui::Button("Apply"))
-                    {
-                        if (m_SelectedEntity.HasComponent<LineComponent>())
-                        {
-                            auto& line = m_SelectedEntity.GetComponent<LineComponent>();
-                            auto transform = m_SelectedEntity.GetComponent<TransformComponent>().GetTransformMatrix();
-
-                            line.P0 = transform * glm::vec4(line.P0, 1.0f);
-                            line.P1 = transform * glm::vec4(line.P1, 1.0f);
-                        } else if (m_SelectedEntity.HasComponent<CircleComponent>())
-                        {
-                            auto& circle = m_SelectedEntity.GetComponent<CircleComponent>();
-
-                            auto& transform = m_SelectedEntity.GetComponent<TransformComponent>();
-                            auto transformMatrix = m_SelectedEntity.GetComponent<TransformComponent>().GetTransformMatrix();
-
-                            circle.Center = transformMatrix * glm::vec4(circle.Center, 1.0f);
-                            circle.Radius = transform.Scale.x * circle.Radius;
-                        } else if (m_SelectedEntity.HasComponent<PolygonComponent>())
-                        {
-                            auto& polygon = m_SelectedEntity.GetComponent<PolygonComponent>();
-                            auto transform = m_SelectedEntity.GetComponent<TransformComponent>().GetTransformMatrix();
-
-                            for (glm::vec3& vertex : polygon.Vertices)
-                                vertex = transform * glm::vec4(vertex, 1.0f);
-                        }
-
-                        EndTransforming();
-                    }
-
-                    ImGui::SameLine();
-
-                    if (ImGui::Button("Cancel"))
-                        EndTransforming();
-                } else
-                {
-                    if (m_SelectedEntity.HasComponent<TagComponent>())
-                    {
-                        auto& tag = m_SelectedEntity.GetComponent<TagComponent>().Tag;
-
-                        char buffer[256];
-                        memset(buffer, 0, sizeof(buffer));
-                        strcpy_s(buffer, sizeof(buffer), tag.c_str());
-
-                        if (ImGui::InputText("Tag", buffer, sizeof(buffer)))
-                            tag = std::string(buffer);
-                    }
-
-                    if (m_SelectedEntity.HasComponent<LineComponent>())
-                    {
-                        auto& line = m_SelectedEntity.GetComponent<LineComponent>();
-
-                        ImGui::DragFloat2("Point A", glm::value_ptr(line.P0), 0.5f);
-                        ImGui::DragFloat2("Point B", glm::value_ptr(line.P1), 0.5f);
-                        ImGui::DragFloat("Width", &line.Width, 0.5f);
-                        if (line.Style == LineStyle::Dashed)
-                            ImGui::DragFloat("Dash Length", &line.DashLength, 0.5f);
-
-                        ImGui::ColorEdit3("Color", glm::value_ptr(line.Color));
-                    } else if (m_SelectedEntity.HasComponent<CircleComponent>())
-                    {
-                        auto& circle = m_SelectedEntity.GetComponent<CircleComponent>();
-
-                        ImGui::DragFloat2("Center", glm::value_ptr(circle.Center), 0.5f);
-                        ImGui::DragFloat("Radius", &circle.Radius, 0.5f, 0.0f, std::numeric_limits<float>::max());
-
-                        ImGui::ColorEdit3("Color", glm::value_ptr(circle.Color));
-
-                        ImGui::Checkbox("Show Center", &circle.ShowCenter);
-                    } else if (m_SelectedEntity.HasComponent<ArcComponent>())
-                    {
-                        auto& arc = m_SelectedEntity.GetComponent<ArcComponent>();
-
-                        ImGui::DragFloat2("Center", glm::value_ptr(arc.Center), 0.5f);
-                        ImGui::DragFloat("Radius", &arc.Radius, 0.5f, 0.0f, std::numeric_limits<float>::max());
-                        ImGui::DragFloat("Angle 1", &arc.Angle1, 0.5f);
-                        ImGui::DragFloat("Angle 2", &arc.Angle2, 0.5f);
-                        ImGui::Checkbox("Major", &arc.Major);
-
-                        ImGui::ColorEdit3("Color", glm::value_ptr(arc.Color));
-
-                        ImGui::Checkbox("Show Center", &arc.ShowCenter);
-                    } else if (m_SelectedEntity.HasComponent<PolygonComponent>())
-                    {
-                        auto& polygon = m_SelectedEntity.GetComponent<PolygonComponent>();
-
-                        for (int i = 0; i < polygon.Vertices.size(); ++i)
-                        {
-                            ImGui::PushID(i);
-                            std::string label = "Vertex " + std::to_string(i);
-                            ImGui::DragFloat2(label.c_str(), glm::value_ptr(polygon.Vertices[i]), 0.5f);
-                            ImGui::PopID();
-                        }
-
-                        ImGui::ColorEdit3("Color", glm::value_ptr(polygon.Color));
-                    }
-                }
-            } else
-            {
-                ImGui::Text("Background");
-                ImGui::ColorEdit3("Color", glm::value_ptr(m_ActiveScene->GetBackgroundColor()));
-            }
-        }
-        ImGui::End();
-    }
-
-    void EditorLayer::UI_Entities()
-    {
-        ImGui::Begin("Entities");
-        {
-            for (auto it = m_ActiveScene->GetEntities().rbegin(); it != m_ActiveScene->GetEntities().rend(); ++it)
-            {
-                Entity entity = *it;
-                bool selected = m_SelectedEntity == entity;
-
-                ImGui::Selectable(entity.GetTag().c_str(), &selected);
-
-                if (ImGui::IsItemClicked())
-                    m_SelectedEntity = entity;
-            }
-
-            // Left-click on blank space to unselect
-            if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-                m_SelectedEntity = {};
-
-            // Right-click on blank space
-            if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonDefault_))
-            {
-                // Not done
-                if (ImGui::MenuItem("Create Empty Entity"))
-                    m_ActiveScene->CreateEntity("Empty Entity");
-
-                ImGui::EndPopup();
-            }
-
-            if (m_SelectedEntity && ImGui::IsKeyPressed(ImGuiKey_Delete))
-                ImGui::OpenPopup("Warning");
-
-            m_IsModalOpen = ImGui::BeginPopupModal("Warning", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-            if (m_IsModalOpen)
-            {
-                ImGui::Text("Delete this entity?");
-
-                if (ImGui::Button("OK", ImVec2(120, 0)))
-                {
-                    m_ActiveScene->RemoveEntity(m_SelectedEntity);
-                    m_SelectedEntity = {};
-                    ImGui::CloseCurrentPopup();
-                }
-
-                ImGui::SameLine();
-
-                if (ImGui::Button("Cancel", ImVec2(120, 0)))
-                    ImGui::CloseCurrentPopup();
-
-                ImGui::EndPopup();
-            }
-        }
-        ImGui::End();
-    }
-
-    void EditorLayer::DrawFloat3Control(const std::string& label, float* x, float* y, float* z, float columnWidth)
-    {
-        ImGui::PushID(label.c_str());
-
-        ImGui::Columns(2);
-        ImGui::SetColumnWidth(0, columnWidth);
-
-        ImGui::Text(label.c_str());
-        ImGui::NextColumn();
-
-        ImGui::PushItemWidth(ImGui::CalcItemWidth() / 3.0f);
-
-        ImGui::Text("X");
-        ImGui::SameLine();
-        ImGui::DragFloat("##X", x, 0.5f);
-
-        ImGui::SameLine();
-
-        ImGui::Text("Y");
-        ImGui::SameLine();
-        ImGui::DragFloat("##Y", y, 0.5f);
-
-        ImGui::SameLine();
-
-        ImGui::Text("Z");
-        ImGui::SameLine();
-        ImGui::DragFloat("##Z", z, 0.5f);
-
-        ImGui::PopItemWidth();
-        ImGui::Columns(1);
-
-        ImGui::PopID();
-    }
-
-    void EditorLayer::DrawFloat3Control(const std::string& label, glm::vec3& values, float columnWidth)
-    {
-        DrawFloat3Control(label, &values.x, &values.y, &values.z, columnWidth);
-    }
-
     void EditorLayer::BeginTransforming()
     {
-        auto& transform = m_SelectedEntity.AddComponent<TransformComponent>();
+        Entity selectedEntity = m_HierarchyPanel.GetSelectedEntity();
+        auto& transform = selectedEntity.AddComponent<TransformComponent>();
 
-        if (m_SelectedEntity.HasComponent<LineComponent>())
+        if (selectedEntity.HasComponent<LineComponent>())
         {
-            auto& line = m_SelectedEntity.GetComponent<LineComponent>();
+            auto& line = selectedEntity.GetComponent<LineComponent>();
             transform.PivotPoint = (line.P0 + line.P1) / 2.0f;
-        } else if (m_SelectedEntity.HasComponent<CircleComponent>())
+        } else if (selectedEntity.HasComponent<CircleComponent>())
         {
-            auto& circle = m_SelectedEntity.GetComponent<CircleComponent>();
+            auto& circle = selectedEntity.GetComponent<CircleComponent>();
             transform.PivotPoint = circle.Center;
-        } else if (m_SelectedEntity.HasComponent<PolygonComponent>())
+        } else if (selectedEntity.HasComponent<PolygonComponent>())
         {
-            auto& polygon = m_SelectedEntity.GetComponent<PolygonComponent>();
+            auto& polygon = selectedEntity.GetComponent<PolygonComponent>();
             glm::vec3 referencePoint = { 0.0f, 0.0f, 0.0f };
             for (auto& vertex : polygon.Vertices)
                 referencePoint += vertex;
             transform.PivotPoint = referencePoint / (float)polygon.Vertices.size();
         }
-    }
-
-    void EditorLayer::EndTransforming()
-    {
-        m_SelectedEntity.RemoveComponent<TransformComponent>();
     }
 }
