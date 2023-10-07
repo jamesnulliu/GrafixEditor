@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "Grafix/Math/TransformAlgorithm.h"
 
 namespace Grafix
 {
@@ -30,21 +31,29 @@ namespace Grafix
         // TODO: Implement translate, rotate and scale ourselves.
         glm::mat4 GetTransformMatrix() const
         {
-            glm::mat4 initialTranslationMatrix = glm::translate(glm::mat4(1.0f), -PivotPoint);
 
-            glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), Translation);
+            //glm::mat4 initialTranslationMatrix = glm::translate(glm::mat4(1.0f), -PivotPoint);
+            glm::mat4 initialTranslationMatrix = Math::Translate(glm::mat4(1.0f), -PivotPoint);
+            
+            //glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), Translation);
+            glm::mat4 translationMatrix = Math::Translate(glm::mat4(1.0f), Translation);
 
             glm::vec3 rotation = glm::radians(Rotation);
-            glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), rotation.x, glm::vec3(1.0f, 0.0f, 0.0f))
-                * glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 1.0f, 0.0f))
-                * glm::rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
-            glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), Scale);
+            /*glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), rotation.x, glm::vec3(1.0f, 0.0f, 0.0f))
+                * glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 1.0f, 0.0f))
+                * glm::rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));*/
+            glm::mat4 rotationMatrix = Math::Rotate(glm::mat4(1.0f), rotation.x, glm::vec3(1.0f, 0.0f, 0.0f))
+                * Math::Rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 1.0f, 0.0f))
+                * Math::Rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+            
+            //glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), Scale);
+            glm::mat4 scaleMatrix = Math::Scale(glm::mat4(1.0f), Scale);
 
             glm::mat4 transformMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 
-            glm::mat4 finalTranslationMatrix = glm::translate(glm::mat4(1.0f), PivotPoint);
-
+            //glm::mat4 finalTranslationMatrix = glm::translate(glm::mat4(1.0f), PivotPoint);
+            glm::mat4 finalTranslationMatrix = Math::Translate(glm::mat4(1.0f), PivotPoint);
             return finalTranslationMatrix * transformMatrix * initialTranslationMatrix;
         }
     };
