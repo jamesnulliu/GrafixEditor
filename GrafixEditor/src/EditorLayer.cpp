@@ -122,48 +122,6 @@ namespace Grafix
         {
             switch (e.GetKey())
             {
-            case Key::M:
-            {
-                GF_INFO("Switched to move tool.");
-                m_ToolState = ToolState::Move;
-                m_HierarchyPanel.SetSelectedEntity({});
-                break;
-            }
-            case Key::B:
-            {
-                GF_INFO("Switched to Bucket tool.");
-                m_ToolState = ToolState::Bucket;
-                m_HierarchyPanel.SetSelectedEntity({});
-                break;
-            }
-            case Key::L:
-            {
-                GF_INFO("Switched to line tool.");
-                m_ToolState = ToolState::Line;
-                m_HierarchyPanel.SetSelectedEntity({});
-                break;
-            }
-            case Key::A:
-            {
-                GF_INFO("Switched to arc tool.");
-                m_ToolState = ToolState::Arc;
-                m_HierarchyPanel.SetSelectedEntity({});
-                break;
-            }
-            case Key::C:
-            {
-                GF_INFO("Switched to circle tool.");
-                m_ToolState = ToolState::Circle;
-                m_HierarchyPanel.SetSelectedEntity({});
-                break;
-            }
-            case Key::P:
-            {
-                GF_INFO("Switched to pen tool.");
-                m_ToolState = ToolState::Pen;
-                m_HierarchyPanel.SetSelectedEntity({});
-                break;
-            }
             case Key::T:
             {
                 if (control && m_HierarchyPanel.GetSelectedEntity())
@@ -190,16 +148,16 @@ namespace Grafix
     {
         auto [mx, my] = ImGui::GetMousePos();
 
-        m_MousePosInViewport = glm::i32vec2{
-            (int)(mx - m_ViewportBounds[0].x),
-            (int)(m_ViewportBounds[1].y - my)
+        m_MousePosInViewport = {
+            mx - m_ViewportBounds[0].x,
+            m_ViewportBounds[1].y - my
         };
     }
 
     bool EditorLayer::IsMouseInViewport() const
     {
-        return m_MousePosInViewport.x >= 0 && m_MousePosInViewport.x < (int)m_ViewportWidth
-            && m_MousePosInViewport.y >= 0 && m_MousePosInViewport.y < (int)m_ViewportHeight;
+        return m_MousePosInViewport.x >= 0.0f && m_MousePosInViewport.x < (float)m_ViewportWidth
+            && m_MousePosInViewport.y >= 0.0f && m_MousePosInViewport.y < (float)m_ViewportHeight;
     }
 
     // -------------------------------------------------------------------
@@ -219,8 +177,8 @@ namespace Grafix
 
                 auto& line = entity.AddComponent<LineComponent>();
 
-                line.P0 = { m_MousePosInViewport, 1.0f };
-                line.P1 = { m_MousePosInViewport, 1.0f };
+                line.P0 = m_MousePosInViewport;
+                line.P1 = m_MousePosInViewport;
                 line.Color = m_PickedColor;
             }
         } else
@@ -241,12 +199,12 @@ namespace Grafix
             if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift))
             {
                 if (std::abs(m_MousePosInViewport.x - line.P0.x) < std::abs(m_MousePosInViewport.y - line.P0.y))
-                    line.P1 = { line.P0.x, m_MousePosInViewport.y, 1.0f };
+                    line.P1 = { line.P0.x, m_MousePosInViewport.y };
                 else
-                    line.P1 = { m_MousePosInViewport.x, line.P0.y, 1.0f };
+                    line.P1 = { m_MousePosInViewport.x, line.P0.y };
             } else
             {
-                line.P1 = { m_MousePosInViewport, 1.0f };
+                line.P1 = m_MousePosInViewport;
             }
 
             if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
@@ -277,7 +235,7 @@ namespace Grafix
 
                 auto& arc = entity.AddComponent<ArcComponent>();
 
-                arc.Center = { m_MousePosInViewport, 1.0f };
+                arc.Center = m_MousePosInViewport;
                 arc.Radius = 0.0f;
                 arc.Color = m_PickedColor;
 
@@ -304,7 +262,7 @@ namespace Grafix
             {
             case 0:
             {
-                float radius = glm::distance(arc.Center, glm::vec3(m_MousePosInViewport, 1.0f));
+                float radius = glm::distance(arc.Center, m_MousePosInViewport);
 
                 float dx = m_MousePosInViewport.x - arc.Center.x;
                 float dy = m_MousePosInViewport.y - arc.Center.y;
@@ -369,7 +327,7 @@ namespace Grafix
 
                 auto& circle = entity.AddComponent<CircleComponent>();
 
-                circle.Center = { m_MousePosInViewport, 1.0f };
+                circle.Center = m_MousePosInViewport;
                 circle.Color = m_PickedColor;
                 circle.ShowCenter = true;
             }
@@ -387,7 +345,7 @@ namespace Grafix
                 return;
             }
 
-            circle.Radius = glm::distance(circle.Center, glm::vec3(m_MousePosInViewport, 1.0f));
+            circle.Radius = glm::distance(circle.Center, m_MousePosInViewport);
 
             // Confirm the circle
             if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
@@ -418,7 +376,7 @@ namespace Grafix
 
                 auto& polygon = entity.AddComponent<PolygonComponent>();
 
-                polygon.Vertices.push_back({ m_MousePosInViewport, 0.0f });
+                polygon.Vertices.push_back(m_MousePosInViewport);
                 polygon.Color = m_PickedColor;
                 polygon.IsClosed = false;
             }
@@ -437,7 +395,7 @@ namespace Grafix
             }
 
             if (m_ViewportHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-                polygon.Vertices.push_back({ m_MousePosInViewport, 0.0f });
+                polygon.Vertices.push_back(m_MousePosInViewport);
 
             if (ImGui::IsKeyPressed(ImGuiKey_Enter))
             {
@@ -635,7 +593,7 @@ namespace Grafix
         } else if (selectedEntity.HasComponent<PolygonComponent>())
         {
             auto& polygon = selectedEntity.GetComponent<PolygonComponent>();
-            glm::vec3 referencePoint = { 0.0f, 0.0f, 0.0f };
+            glm::vec2 referencePoint = glm::vec2{ 0.0f, 0.0f };
             for (auto& vertex : polygon.Vertices)
                 referencePoint += vertex;
             transform.PivotPoint = referencePoint / (float)polygon.Vertices.size();

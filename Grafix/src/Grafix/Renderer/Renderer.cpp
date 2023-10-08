@@ -40,8 +40,8 @@ namespace Grafix
         if (entity.HasComponent<TransformComponent>())
         {
             auto transform = entity.GetComponent<TransformComponent>().GetTransformMatrix();
-            glm::vec2 p0 = transform * glm::vec4(line.P0, 1.0f);
-            glm::vec2 p1 = transform * glm::vec4(line.P1, 1.0f);
+            glm::vec2 p0 = glm::vec2(transform * glm::vec3(line.P0, 1.0f));
+            glm::vec2 p1 = glm::vec2(transform * glm::vec3(line.P1, 1.0f));
 
             LineAlgorithm::Draw(p0, p1, line.Color, line.Style, line.DashLength);
         } else
@@ -59,7 +59,7 @@ namespace Grafix
             auto& transform = entity.GetComponent<TransformComponent>();
             auto transformMatrix = entity.GetComponent<TransformComponent>().GetTransformMatrix();
 
-            glm::vec2 center = transformMatrix * glm::vec4(circle.Center, 1.0f);
+            glm::vec2 center = glm::vec2(transformMatrix * glm::vec3(circle.Center, 1.0f));
             float radius = transform.Scale.x * circle.Radius;
 
             CircleAlgorithm::Draw(center, radius, circle.Color, circle.ShowCenter);
@@ -79,7 +79,7 @@ namespace Grafix
             auto& transform = entity.GetComponent<TransformComponent>();
             auto transformMatrix = entity.GetComponent<TransformComponent>().GetTransformMatrix();
 
-            glm::vec2 center = transformMatrix * glm::vec4(arc.Center, 1.0f);
+            glm::vec2 center = transformMatrix * glm::vec3(arc.Center, 1.0f);
             float radius = transform.Scale.x * arc.Radius;
 
             ArcAlgorithm::Draw(center, radius, arc.Angle1, arc.Angle2, arc.Major, arc.Color, arc.ShowCenter, arc.ShowRadius);
@@ -109,11 +109,11 @@ namespace Grafix
                 auto transform = entity.GetComponent<TransformComponent>().GetTransformMatrix();
 
                 for (int i = 0; i < polygon.Vertices.size(); i++)
-                    vertices[i] = glm::vec2(transform * glm::vec4(polygon.Vertices[i], 1.0f));
+                    vertices[i] = glm::vec2(transform * glm::vec3(polygon.Vertices[i], 1.0f));
             } else
             {
                 for (int i = 0; i < polygon.Vertices.size(); i++)
-                    vertices[i] = glm::vec2(polygon.Vertices[i]);
+                    vertices[i] = polygon.Vertices[i];
             }
 
             PolygonAlgorithm::Draw(vertices, polygon.Color);

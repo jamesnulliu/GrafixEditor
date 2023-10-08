@@ -59,18 +59,18 @@ namespace Grafix
                     auto& transform = m_SelectedEntity.GetComponent<TransformComponent>();
                     ImGui::Text("Transform");
 
-                    DrawFloat3Control("Pivot Point", transform.PivotPoint);
+                    DrawFloat2Control("Pivot Point", transform.PivotPoint);
 
-                    DrawFloat3Control("Position", transform.Translation);
+                    DrawFloat2Control("Position", transform.Translation);
 
                     if (m_SelectedEntity.HasAnyOfComponents<CircleComponent, ArcComponent>())
                     {
-                        DrawFloatControl("Rotation", &transform.Rotation.z);
+                        DrawFloatControl("Rotation", &transform.Rotation);
                         DrawFloatControl("Scale", &transform.Scale.x, 0.0f);
                         transform.Scale.y = transform.Scale.x;
                     } else
                     {
-                        DrawFloat3Control("Rotation", transform.Rotation);
+                        DrawFloatControl("Rotation", &transform.Rotation);
 
                         if (transform.KeepRatio)
                         {
@@ -78,7 +78,7 @@ namespace Grafix
                             transform.Scale.y = transform.Scale.x;
                         } else
                         {
-                            DrawFloat3Control("Scale", transform.Scale, 0.0f);
+                            DrawFloat2Control("Scale", transform.Scale, 0.0f);
                         }
 
                         ImGui::SameLine();
@@ -92,8 +92,8 @@ namespace Grafix
                             auto& line = m_SelectedEntity.GetComponent<LineComponent>();
                             auto transform = m_SelectedEntity.GetComponent<TransformComponent>().GetTransformMatrix();
 
-                            line.P0 = transform * glm::vec4(line.P0, 1.0f);
-                            line.P1 = transform * glm::vec4(line.P1, 1.0f);
+                            line.P0 = transform * glm::vec3(line.P0, 1.0f);
+                            line.P1 = transform * glm::vec3(line.P1, 1.0f);
                         } else if (m_SelectedEntity.HasComponent<CircleComponent>())
                         {
                             auto& circle = m_SelectedEntity.GetComponent<CircleComponent>();
@@ -101,15 +101,15 @@ namespace Grafix
                             auto& transform = m_SelectedEntity.GetComponent<TransformComponent>();
                             auto transformMatrix = m_SelectedEntity.GetComponent<TransformComponent>().GetTransformMatrix();
 
-                            circle.Center = transformMatrix * glm::vec4(circle.Center, 1.0f);
+                            circle.Center = transformMatrix * glm::vec3(circle.Center, 1.0f);
                             circle.Radius = transform.Scale.x * circle.Radius;
                         } else if (m_SelectedEntity.HasComponent<PolygonComponent>())
                         {
                             auto& polygon = m_SelectedEntity.GetComponent<PolygonComponent>();
                             auto transform = m_SelectedEntity.GetComponent<TransformComponent>().GetTransformMatrix();
 
-                            for (glm::vec3& vertex : polygon.Vertices)
-                                vertex = transform * glm::vec4(vertex, 1.0f);
+                            for (glm::vec2& vertex : polygon.Vertices)
+                                vertex = transform * glm::vec3(vertex, 1.0f);
                         }
                         m_SelectedEntity.RemoveComponent<TransformComponent>();
                     }

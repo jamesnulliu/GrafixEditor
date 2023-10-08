@@ -51,7 +51,7 @@ namespace Grafix
         glm::vec2 m_ViewportBounds[2];
         bool m_ViewportFocused = false, m_ViewportHovered = false;
 
-        glm::i32vec2 m_MousePosInViewport{ 0, 0 };
+        glm::vec2 m_MousePosInViewport{ 0.0f, 0.0f };
 
         std::shared_ptr<Scene> m_ActiveScene = nullptr;
 

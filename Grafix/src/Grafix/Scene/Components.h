@@ -2,58 +2,35 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "Grafix/Math/TransformAlgorithm.h"
+#include "Grafix/Math/Transformation.h"
 
 namespace Grafix
 {
-    ////struct SolidColorComponent final
-    ////{
-    ////    glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
-
-    ////    SolidColorComponent() = default;
-    ////    SolidColorComponent(const SolidColorComponent&) = default;
-    ////    SolidColorComponent(const glm::vec4& color) : Color(color) {}
-    ////};
-
     struct TransformComponent final
     {
-        glm::vec3 PivotPoint{ 0.0f, 0.0f, 0.0f };
+        glm::vec2 PivotPoint{ 0.0f, 0.0f };
 
-        glm::vec3 Translation{ 0.0f, 0.0f, 0.0f };
-        glm::vec3 Rotation{ 0.0f, 0.0f, 0.0f };
-        glm::vec3 Scale{ 1.0f, 1.0f, 1.0f };
+        glm::vec2 Translation{ 0.0f, 0.0f };
+        float Rotation = 0.0f;
+        glm::vec2 Scale{ 1.0f, 1.0f };
 
         bool KeepRatio = true;
 
         TransformComponent() = default;
         TransformComponent(const TransformComponent&) = default;
 
-        // TODO: Implement translate, rotate and scale ourselves.
-        glm::mat4 GetTransformMatrix() const
+        glm::mat3 GetTransformMatrix() const
         {
+            glm::mat3 initialTranslationMatrix = Math::CalcTranslationMatrix(-PivotPoint);
 
-            //glm::mat4 initialTranslationMatrix = glm::translate(glm::mat4(1.0f), -PivotPoint);
-            glm::mat4 initialTranslationMatrix = Math::Translate(glm::mat4(1.0f), -PivotPoint);
-            
-            //glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), Translation);
-            glm::mat4 translationMatrix = Math::Translate(glm::mat4(1.0f), Translation);
+            glm::mat3 translationMatrix = Math::CalcTranslationMatrix(Translation);
+            glm::mat3 rotationMatrix = Math::CalcRotationMatrix(glm::radians(Rotation));
+            glm::mat3 scaleMatrix = Math::CalcScalingMatrix(Scale);
 
-            glm::vec3 rotation = glm::radians(Rotation);
+            glm::mat3 transformMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 
-            /*glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), rotation.x, glm::vec3(1.0f, 0.0f, 0.0f))
-                * glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 1.0f, 0.0f))
-                * glm::rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));*/
-            glm::mat4 rotationMatrix = Math::Rotate(glm::mat4(1.0f), rotation.x, glm::vec3(1.0f, 0.0f, 0.0f))
-                * Math::Rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 1.0f, 0.0f))
-                * Math::Rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-            
-            //glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), Scale);
-            glm::mat4 scaleMatrix = Math::Scale(glm::mat4(1.0f), Scale);
+            glm::mat3 finalTranslationMatrix = Math::CalcTranslationMatrix(PivotPoint);
 
-            glm::mat4 transformMatrix = translationMatrix * rotationMatrix * scaleMatrix;
-
-            //glm::mat4 finalTranslationMatrix = glm::translate(glm::mat4(1.0f), PivotPoint);
-            glm::mat4 finalTranslationMatrix = Math::Translate(glm::mat4(1.0f), PivotPoint);
             return finalTranslationMatrix * transformMatrix * initialTranslationMatrix;
         }
     };
@@ -78,8 +55,8 @@ namespace Grafix
 
     struct LineComponent final
     {
-        glm::vec3 P0{ 400.0f, 500.0f, 0.0f };
-        glm::vec3 P1{ 500.0f, 500.0f, 0.0f };
+        glm::vec2 P0{ 400.0f, 500.0f };
+        glm::vec2 P1{ 500.0f, 500.0f };
 
         glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
 
@@ -94,7 +71,7 @@ namespace Grafix
 
     struct CircleComponent final
     {
-        glm::vec3 Center{ 450.0f, 500.0f, 0.0f };
+        glm::vec2 Center{ 450.0f, 500.0f };
         float Radius = 0.0f;
 
         glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
@@ -109,7 +86,7 @@ namespace Grafix
 
     struct ArcComponent final
     {
-        glm::vec3 Center{ 450.0f, 500.0f, 0.0f };
+        glm::vec2 Center{ 450.0f, 500.0f };
         float Radius = 50.0f;
         float Angle1 = -30.0f;
         float Angle2 = 60.0f;
@@ -127,7 +104,7 @@ namespace Grafix
 
     struct PolygonComponent final
     {
-        std::vector<glm::vec3> Vertices;
+        std::vector<glm::vec2> Vertices;
         bool IsClosed = false;
 
         glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
