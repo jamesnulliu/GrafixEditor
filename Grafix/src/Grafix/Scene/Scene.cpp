@@ -12,6 +12,7 @@ namespace Grafix
         m_Entities.push_back(entity);
 
         entity.AddComponent<TagComponent>(name.empty() ? "Entity" : name);
+        entity.AddComponent<TransformComponent>();
 
         return entity;
     }

@@ -18,6 +18,9 @@ namespace Grafix
         Entity GetSelectedEntity() const { return m_SelectedEntity; }
         void SetSelectedEntity(Entity entity) { m_SelectedEntity = entity; }
 
+        void SetTransforming() { m_IsTransforming = true; }
+        bool IsTransforming() const { return m_IsTransforming; }
+
         void OnUIRender();
     private:
         void DrawItem(Entity entity);
@@ -37,6 +40,7 @@ namespace Grafix
         Entity m_SelectedEntity{};
         std::shared_ptr<Scene> m_Scene = nullptr;
 
+        bool m_IsTransforming = false;
         bool m_IsModalOpen = false;
     };
 }

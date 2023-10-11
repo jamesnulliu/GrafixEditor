@@ -10,12 +10,13 @@ namespace Grafix
         Scanline(vertices, color);
     }
 
+    // The last vertex is the same as the first one
     void PolygonAlgorithm::Scanline(const std::vector<glm::vec2>& vertices, const glm::vec3& color)
     {
         int yMax = (int)(vertices[0].y + 0.5);
         int yMin = (int)(vertices[0].y + 0.5);
 
-        for (int i = 1; i < vertices.size(); ++i)
+        for (int i = 1; i < vertices.size() - 1; ++i)
         {
             int roundedY = (int)(vertices[i].y + 0.5);
 
@@ -29,10 +30,10 @@ namespace Grafix
         // Initialize ET
         EdgeTable ET(yMax + 1);
 
-        for (int i = 0; i < vertices.size(); ++i)
+        for (int i = 0; i < vertices.size() - 1; ++i)
         {
             const glm::vec2* bottomVertex = &vertices[i];
-            const glm::vec2* topVertex = (i + 1 < vertices.size()) ? &vertices[i + 1] : &vertices[0];
+            const glm::vec2* topVertex = &vertices[i + 1];
 
             int bottomY = (int)(bottomVertex->y + 0.5), topY = (int)(topVertex->y + 0.5);
             if (bottomY == topY)

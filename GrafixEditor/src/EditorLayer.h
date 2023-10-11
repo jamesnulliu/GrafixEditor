@@ -8,7 +8,6 @@ namespace Grafix
 {
     class EditorLayer final : public Layer
     {
-    private:
         enum class ToolState : uint8_t
         {
             Move = 0,
@@ -17,6 +16,7 @@ namespace Grafix
             Circle,
             Pen
         };
+
     public:
         EditorLayer();
         virtual ~EditorLayer() = default;
@@ -31,7 +31,7 @@ namespace Grafix
         bool OnKeyPressed(KeyPressedEvent& e);
         bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
-        void UpdateMousePosInViewport();
+        void UpdateMousePosInCanvas();
         bool IsMouseInViewport() const;
 
         void OnPenToolUpdate();
@@ -47,24 +47,32 @@ namespace Grafix
 
         void BeginTransforming();
     private:
-        uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
-        glm::vec2 m_ViewportBounds[2];
+        uint32_t m_CanvasWidth = 1280, m_CanvasHeight = 720;
+        glm::vec2 m_CanvasBounds[2];
         bool m_ViewportFocused = false, m_ViewportHovered = false;
 
-        glm::vec2 m_MousePosInViewport{ 0.0f, 0.0f };
-
-        std::shared_ptr<Scene> m_ActiveScene = nullptr;
+        glm::vec2 m_MousePosInCanvas{ 0.0f, 0.0f };
+        glm::vec2 m_MousePosInWorld{ 0.0f, 0.0f };
 
         Renderer m_Renderer;
+        Camera m_Camera;
         std::shared_ptr<Scene> m_EditorScene = nullptr;
-        EditorCamera m_EditorCamera;
 
         ToolState m_ToolState = ToolState::Move;
         bool m_IsDrawing = false;
+        bool m_IsTransforming = false;
         int m_OperationState = 1;
 
         glm::vec3 m_PickedColor{ 0.9f, 0.9f, 0.9f };
+        glm::vec3 m_AuxColor{ 0.5f, 0.5f, 0.5f };
 
         HierarchyPanel m_HierarchyPanel;
+
+        enum class ModeState
+        {
+            Editor, Game
+        };
+
+        ModeState m_ModeState = ModeState::Game;
     };
 }

@@ -4,32 +4,97 @@ namespace Grafix
 {
     static uint32_t s_MaxViewportSize = 16384;
 
-    EditorLayer::EditorLayer()
-        : Layer("Editor Layer")
-    {
-    }
+    EditorLayer::EditorLayer() : Layer("Editor Layer") {}
 
     void EditorLayer::Render()
     {
-        m_Renderer.OnResize(m_ViewportWidth, m_ViewportHeight);
-        m_EditorCamera.SetViewportSize((float)m_ViewportWidth, (float)m_ViewportHeight);
+        for (auto entity : m_EditorScene->GetEntities())
+        {
+            auto& transform = entity.GetComponent<TransformComponent>();
 
-        m_Renderer.Render(*m_ActiveScene, m_EditorCamera);
+            if (entity.HasComponent<LineComponent>())
+            {
+                auto& line = entity.GetComponent<LineComponent>();
+                m_Renderer.DrawLine(transform, line.P0, line.P1, line.Color, line.Style, line.DashLength);
+            } else if (entity.HasComponent<CircleComponent>())
+            {
+                auto& circle = entity.GetComponent<CircleComponent>();
+                m_Renderer.DrawCircle(transform, circle.Center, circle.Radius * transform.Scale.x, circle.Color);
+            } else if (entity.HasComponent<ArcComponent>())
+            {
+                auto& arc = entity.GetComponent<ArcComponent>();
+                m_Renderer.DrawArc(transform, arc.Center, arc.Radius * transform.Scale.x, arc.Angle1, arc.Angle2, arc.Major, arc.Color);
+            } else if (entity.HasComponent<PolygonComponent>())
+            {
+                auto& polygon = entity.GetComponent<PolygonComponent>();
+                m_Renderer.DrawPolygon(transform, polygon.Vertices, polygon.Color);
+            }
+        }
+
+        // Aux lines
+        if (auto entity = m_HierarchyPanel.GetSelectedEntity())
+        {
+            auto& transform = entity.GetComponent<TransformComponent>();
+
+            if (entity.HasComponent<CircleComponent>())
+            {
+                auto& circle = entity.GetComponent<CircleComponent>();
+                m_Renderer.DrawCross(transform, circle.Center, 5.0f, m_AuxColor, LineStyle::Solid);
+            } else if (entity.HasComponent<ArcComponent>())
+            {
+                auto& arc = entity.GetComponent<ArcComponent>();
+                m_Renderer.DrawCross(transform, arc.Center, 5.0f, m_AuxColor, LineStyle::Solid);
+
+                glm::vec2 delta1 = arc.Radius *
+                    glm::vec2{ glm::cos(glm::radians(arc.Angle1)), glm::sin(glm::radians(arc.Angle1)) };
+                m_Renderer.DrawLine(transform, arc.Center, arc.Center + delta1, m_AuxColor, LineStyle::Dashed, 20.0f);
+
+                glm::vec2 delta2 = arc.Radius *
+                    glm::vec2{ glm::cos(glm::radians(arc.Angle2)), glm::sin(glm::radians(arc.Angle2)) };
+                m_Renderer.DrawLine(transform, arc.Center, arc.Center + delta2, m_AuxColor, LineStyle::Dashed, 20.0f);
+            } else if (entity.HasComponent<PolygonComponent>())
+            {
+                auto& polygon = entity.GetComponent<PolygonComponent>();
+                m_Renderer.DrawPolygon(transform, polygon.Vertices, polygon.Color);
+            }
+        }
     }
 
     void EditorLayer::OnAttach()
     {
         m_EditorScene = std::make_shared<Scene>();
-        m_ActiveScene = m_EditorScene;
-
         m_HierarchyPanel.BindScene(m_EditorScene);
+
+        // Game
+        auto entity = m_EditorScene->CreateEntity("Bird");
+        auto& transform = entity.GetComponent<TransformComponent>();
+        transform.Translation = { 420.0f, 360.0f };
+        auto& triangle = entity.AddComponent<PolygonComponent>();
+        triangle.Vertices = { { -20.0f, 30.0f }, { -20.0f, -30.0f }, { 40.0f, 0.0f }, { -20.0f, 30.0f } };
+        triangle.Color = glm::vec3(1.0f, 0.824f, 0.0f);
     }
 
     void EditorLayer::OnUpdate()
     {
-        UpdateMousePosInViewport();
+        // Game
+        auto entity = m_EditorScene->GetEntity("Bird");
+        auto& transform = entity.GetComponent<TransformComponent>();
+        transform.Translation.x += 0.4f;
 
-        ////m_EditorCamera.OnUpdate();
+        if (Input::IsKeyPressed(Key::Space))
+        {
+            transform.Translation.y += 1.0f;
+            transform.Rotation = std::max(transform.Rotation + 0.0004f, 30.0f);
+        } else
+        {
+            transform.Translation.y -= 1.0f;
+            transform.Rotation = std::min(transform.Rotation - 0.0004f, -30.0f);
+        }
+
+        UpdateMousePosInCanvas();
+
+        m_Camera.SetPosition(glm::vec2{ transform.Translation.x - 320.f, 0.0f });
+        m_Camera.OnUpdate();
 
         switch (m_ToolState)
         {
@@ -98,7 +163,14 @@ namespace Grafix
         }
         ImGui::End(); // DockSpace
 
+        // Update
+
+        m_Renderer.OnResize(m_CanvasWidth, m_CanvasHeight);
+        m_Camera.SetViewportSize((float)m_CanvasWidth, (float)m_CanvasHeight);
+
+        m_Renderer.BeginScene(m_Camera);
         Render();
+        m_Renderer.EndScene();
     }
 
     void EditorLayer::OnEvent(Event& e)
@@ -137,27 +209,23 @@ namespace Grafix
 
     bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
     {
-        if (e.GetMouseButton() == MouseButton::Left)
-        {
-        }
-
         return false;
     }
 
-    void EditorLayer::UpdateMousePosInViewport()
+    void EditorLayer::UpdateMousePosInCanvas()
     {
         auto [mx, my] = ImGui::GetMousePos();
 
-        m_MousePosInViewport = {
-            mx - m_ViewportBounds[0].x,
-            m_ViewportBounds[1].y - my
+        m_MousePosInCanvas = {
+            mx - m_CanvasBounds[0].x,
+            m_CanvasBounds[1].y - my
         };
     }
 
     bool EditorLayer::IsMouseInViewport() const
     {
-        return m_MousePosInViewport.x >= 0.0f && m_MousePosInViewport.x < (float)m_ViewportWidth
-            && m_MousePosInViewport.y >= 0.0f && m_MousePosInViewport.y < (float)m_ViewportHeight;
+        return m_MousePosInCanvas.x >= 0.0f && m_MousePosInCanvas.x < (float)m_CanvasWidth
+            && m_MousePosInCanvas.y >= 0.0f && m_MousePosInCanvas.y < (float)m_CanvasHeight;
     }
 
     // -------------------------------------------------------------------
@@ -172,13 +240,13 @@ namespace Grafix
             {
                 m_IsDrawing = true;
 
-                Entity entity = m_ActiveScene->CreateEntity("Line");
+                Entity entity = m_EditorScene->CreateEntity("Line");
                 m_HierarchyPanel.SetSelectedEntity(entity);
 
                 auto& line = entity.AddComponent<LineComponent>();
 
-                line.P0 = m_MousePosInViewport;
-                line.P1 = m_MousePosInViewport;
+                line.P0 = m_MousePosInWorld;
+                line.P1 = m_MousePosInWorld;
                 line.Color = m_PickedColor;
             }
         } else
@@ -190,7 +258,7 @@ namespace Grafix
             if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsMouseClicked(ImGuiMouseButton_Right))
             {
                 m_IsDrawing = false;
-                m_ActiveScene->RemoveEntity(entity);
+                m_EditorScene->RemoveEntity(entity);
                 m_HierarchyPanel.SetSelectedEntity({});
                 return;
             }
@@ -198,13 +266,13 @@ namespace Grafix
             // Press Shift key to draw horizontal/vertical lines
             if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift))
             {
-                if (std::abs(m_MousePosInViewport.x - line.P0.x) < std::abs(m_MousePosInViewport.y - line.P0.y))
-                    line.P1 = { line.P0.x, m_MousePosInViewport.y };
+                if (std::abs(m_MousePosInWorld.x - line.P0.x) < std::abs(m_MousePosInWorld.y - line.P0.y))
+                    line.P1 = { line.P0.x, m_MousePosInWorld.y };
                 else
-                    line.P1 = { m_MousePosInViewport.x, line.P0.y };
+                    line.P1 = { m_MousePosInWorld.x, line.P0.y };
             } else
             {
-                line.P1 = m_MousePosInViewport;
+                line.P1 = m_MousePosInWorld;
             }
 
             if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
@@ -214,7 +282,7 @@ namespace Grafix
                 // If the line is too short, remove it
                 if (glm::distance(line.P0, line.P1) < 0.1f)
                 {
-                    m_ActiveScene->RemoveEntity(entity);
+                    m_EditorScene->RemoveEntity(entity);
                     m_HierarchyPanel.SetSelectedEntity({});
                 }
             }
@@ -230,17 +298,14 @@ namespace Grafix
                 m_IsDrawing = true;
                 m_OperationState = 0;
 
-                Entity entity = m_ActiveScene->CreateEntity("Arc");
+                Entity entity = m_EditorScene->CreateEntity("Arc");
                 m_HierarchyPanel.SetSelectedEntity(entity);
 
                 auto& arc = entity.AddComponent<ArcComponent>();
 
-                arc.Center = m_MousePosInViewport;
+                arc.Center = m_MousePosInWorld;
                 arc.Radius = 0.0f;
                 arc.Color = m_PickedColor;
-
-                arc.ShowCenter = true;
-                arc.ShowRadius = true;
             }
         } else
         {
@@ -253,7 +318,7 @@ namespace Grafix
             if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsMouseClicked(ImGuiMouseButton_Right))
             {
                 m_IsDrawing = false;
-                m_ActiveScene->RemoveEntity(entity);
+                m_EditorScene->RemoveEntity(entity);
                 m_HierarchyPanel.SetSelectedEntity({});
                 return;
             }
@@ -262,10 +327,10 @@ namespace Grafix
             {
             case 0:
             {
-                float radius = glm::distance(arc.Center, m_MousePosInViewport);
+                float radius = glm::distance(arc.Center, m_MousePosInWorld);
 
-                float dx = m_MousePosInViewport.x - arc.Center.x;
-                float dy = m_MousePosInViewport.y - arc.Center.y;
+                float dx = m_MousePosInWorld.x - arc.Center.x;
+                float dy = m_MousePosInWorld.y - arc.Center.y;
                 float angle = glm::degrees(glm::atan(dy, dx));
 
                 arc.Radius = radius;
@@ -278,7 +343,7 @@ namespace Grafix
                     if (radius < 0.1f)
                     {
                         m_IsDrawing = false;
-                        m_ActiveScene->RemoveEntity(entity);
+                        m_EditorScene->RemoveEntity(entity);
                         m_HierarchyPanel.SetSelectedEntity({});
                     } else
                     {
@@ -289,8 +354,8 @@ namespace Grafix
             }
             case 1:
             {
-                float dx = m_MousePosInViewport.x - arc.Center.x;
-                float dy = m_MousePosInViewport.y - arc.Center.y;
+                float dx = m_MousePosInWorld.x - arc.Center.x;
+                float dy = m_MousePosInWorld.y - arc.Center.y;
                 float angle = glm::degrees(glm::atan(dy, dx));
                 arc.Angle2 = angle;
 
@@ -302,12 +367,7 @@ namespace Grafix
 
                 // Confirm the arc
                 if (m_ViewportHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-                {
                     m_IsDrawing = false;
-
-                    arc.ShowCenter = false;
-                    arc.ShowRadius = false;
-                }
                 break;
             }
             }
@@ -322,14 +382,13 @@ namespace Grafix
             {
                 m_IsDrawing = true;
 
-                Entity entity = m_ActiveScene->CreateEntity("Circle");
+                Entity entity = m_EditorScene->CreateEntity("Circle");
                 m_HierarchyPanel.SetSelectedEntity(entity);
 
                 auto& circle = entity.AddComponent<CircleComponent>();
 
-                circle.Center = m_MousePosInViewport;
+                circle.Center = m_MousePosInWorld;
                 circle.Color = m_PickedColor;
-                circle.ShowCenter = true;
             }
         } else
         {
@@ -340,24 +399,21 @@ namespace Grafix
             if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsMouseClicked(ImGuiMouseButton_Right))
             {
                 m_IsDrawing = false;
-                m_ActiveScene->RemoveEntity(entity);
+                m_EditorScene->RemoveEntity(entity);
                 m_HierarchyPanel.SetSelectedEntity({});
                 return;
             }
 
-            circle.Radius = glm::distance(circle.Center, m_MousePosInViewport);
+            circle.Radius = glm::distance(circle.Center, m_MousePosInWorld);
 
             // Confirm the circle
             if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
             {
                 m_IsDrawing = false;
-                circle.ShowCenter = false;
 
                 // If the radius is too small, remove the circle
                 if (circle.Radius < 0.1f)
                 {
-                    m_ActiveScene->RemoveEntity(entity);
-                    m_HierarchyPanel.SetSelectedEntity({});
                 }
             }
         }
@@ -371,14 +427,13 @@ namespace Grafix
             {
                 m_IsDrawing = true;
 
-                Entity entity = m_ActiveScene->CreateEntity("Polygon");
+                Entity entity = m_EditorScene->CreateEntity("Polygon");
                 m_HierarchyPanel.SetSelectedEntity(entity);
 
                 auto& polygon = entity.AddComponent<PolygonComponent>();
 
-                polygon.Vertices.push_back(m_MousePosInViewport);
+                polygon.Vertices.push_back(m_MousePosInWorld);
                 polygon.Color = m_PickedColor;
-                polygon.IsClosed = false;
             }
         } else
         {
@@ -389,24 +444,25 @@ namespace Grafix
             if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsMouseClicked(ImGuiMouseButton_Right))
             {
                 m_IsDrawing = false;
-                m_ActiveScene->RemoveEntity(entity);
+                m_EditorScene->RemoveEntity(entity);
                 m_HierarchyPanel.SetSelectedEntity({});
                 return;
             }
 
             if (m_ViewportHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-                polygon.Vertices.push_back(m_MousePosInViewport);
+                polygon.Vertices.push_back(m_MousePosInWorld);
 
             if (ImGui::IsKeyPressed(ImGuiKey_Enter))
             {
                 m_IsDrawing = false;
-                polygon.IsClosed = true;
 
-                if (polygon.Vertices.size() < 2)
+                if (polygon.Vertices.size() > 2)
                 {
-                    m_ActiveScene->RemoveEntity(entity);
+                    polygon.Vertices.push_back(polygon.Vertices[0]);
+                } else
+                {
+                    m_EditorScene->RemoveEntity(entity);
                     m_HierarchyPanel.SetSelectedEntity({});
-                    return;
                 }
             }
         }
@@ -448,19 +504,16 @@ namespace Grafix
             ImVec2 viewportMinRegion = ImGui::GetWindowContentRegionMin();
             ImVec2 viewportMaxRegion = ImGui::GetWindowContentRegionMax();
             ImVec2 viewportOffset = ImGui::GetWindowPos();
-            m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };  // Top-left
-            m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };  // Bottom-right
+            m_CanvasBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };  // Top-left
+            m_CanvasBounds[1] = { m_CanvasBounds[0].x + m_CanvasWidth, m_CanvasBounds[0].y + m_CanvasHeight };  // Bottom-right
 
             m_ViewportFocused = ImGui::IsWindowFocused();
             m_ViewportHovered = ImGui::IsWindowHovered();
             Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportFocused);
 
-            m_ViewportWidth = (uint32_t)ImGui::GetContentRegionAvail().x;
-            m_ViewportHeight = (uint32_t)ImGui::GetContentRegionAvail().y;
-
-            if (m_ViewportWidth == 0 || m_ViewportWidth > s_MaxViewportSize || m_ViewportHeight == 0 || m_ViewportHeight > s_MaxViewportSize)
+            if (m_CanvasWidth == 0 || m_CanvasWidth > s_MaxViewportSize || m_CanvasHeight == 0 || m_CanvasHeight > s_MaxViewportSize)
             {
-                GF_WARN("Attempt to resize viewport to ({0}, {1})", m_ViewportWidth, m_ViewportHeight);
+                GF_WARN("Attempt to resize viewport to ({0}, {1})", m_CanvasWidth, m_CanvasHeight);
             } else
             {
                 auto image = m_Renderer.GetImage();
@@ -532,10 +585,16 @@ namespace Grafix
         {
             ImGui::Text("FPS: %d", (uint32_t)Application::Get().GetFPS());
 
+            glm::vec2 cameraPos = m_Camera.GetPosition();
+            ImGui::Text("Camera Position: (%d, %d)", (int)cameraPos.x, (int)cameraPos.y);
+
             if (IsMouseInViewport())
-                ImGui::Text("Mouse Position: (%d, %d)", (int)m_MousePosInViewport.x, (int)m_MousePosInViewport.y);
-            else
-                ImGui::Text("Mouse Position:");
+            {
+                glm::mat3 translationMatrix = m_Camera.GetTranslationMatrix();
+                m_MousePosInWorld = Math::Transform(translationMatrix, m_MousePosInCanvas);
+                ImGui::Text("Mouse Position In World: (%d, %d)", (int)m_MousePosInWorld.x, (int)m_MousePosInWorld.y);
+                ImGui::Text("Mouse Position In Canvas: (%d, %d)", (int)m_MousePosInCanvas.x, (int)m_MousePosInCanvas.y);
+            }
         }
         ImGui::End();
     }
@@ -579,24 +638,26 @@ namespace Grafix
 
     void EditorLayer::BeginTransforming()
     {
-        Entity selectedEntity = m_HierarchyPanel.GetSelectedEntity();
-        auto& transform = selectedEntity.AddComponent<TransformComponent>();
+        m_HierarchyPanel.SetTransforming();
+
+        auto selectedEntity = m_HierarchyPanel.GetSelectedEntity();
+        auto& transform = selectedEntity.GetComponent<TransformComponent>();
 
         if (selectedEntity.HasComponent<LineComponent>())
         {
             auto& line = selectedEntity.GetComponent<LineComponent>();
-            transform.PivotPoint = (line.P0 + line.P1) / 2.0f;
+            transform.Pivot = line.GetCenterOfGravity();
         } else if (selectedEntity.HasComponent<CircleComponent>())
         {
             auto& circle = selectedEntity.GetComponent<CircleComponent>();
-            transform.PivotPoint = circle.Center;
+            transform.Pivot = circle.GetCenterOfGravity();
         } else if (selectedEntity.HasComponent<PolygonComponent>())
         {
             auto& polygon = selectedEntity.GetComponent<PolygonComponent>();
             glm::vec2 referencePoint = glm::vec2{ 0.0f, 0.0f };
             for (auto& vertex : polygon.Vertices)
                 referencePoint += vertex;
-            transform.PivotPoint = referencePoint / (float)polygon.Vertices.size();
+            transform.Pivot = referencePoint / (float)polygon.Vertices.size();
         }
     }
 }

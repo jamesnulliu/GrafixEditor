@@ -21,8 +21,8 @@ namespace Grafix
     {
         AppSpecification appSpec;
         appSpec.Name = "Grafix Editor";
-        appSpec.Width = 1440;
-        appSpec.Height = 810;
+        appSpec.Width = 1700;
+        appSpec.Height = 770;
 
         return new GrafixEditor(appSpec);
     }

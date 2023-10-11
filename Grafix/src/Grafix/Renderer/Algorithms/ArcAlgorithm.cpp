@@ -6,17 +6,8 @@
 
 namespace Grafix
 {
-    void ArcAlgorithm::Draw(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color, bool showCenter, bool showRadius)
+    void ArcAlgorithm::Draw(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color)
     {
-        if (showCenter)
-            DrawAuxCross(center);
-
-        if (showRadius)
-        {
-            DrawAuxRadius(center, radius, angle1);
-            DrawAuxRadius(center, radius, angle2);
-        }
-
         if (glm::abs(angle2 - angle1) < 1e-9f)
             return;
 

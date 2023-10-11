@@ -54,24 +54,21 @@ namespace Grafix
         {
             if (m_SelectedEntity)
             {
-                if (m_SelectedEntity.HasComponent<TransformComponent>())
+                if (m_IsTransforming)
                 {
                     auto& transform = m_SelectedEntity.GetComponent<TransformComponent>();
                     ImGui::Text("Transform");
 
-                    DrawFloat2Control("Pivot Point", transform.PivotPoint);
-
+                    DrawFloat2Control("Pivot Point", transform.Pivot);
                     DrawFloat2Control("Position", transform.Translation);
+                    DrawFloatControl("Rotation", &transform.Rotation);
 
                     if (m_SelectedEntity.HasAnyOfComponents<CircleComponent, ArcComponent>())
                     {
-                        DrawFloatControl("Rotation", &transform.Rotation);
                         DrawFloatControl("Scale", &transform.Scale.x, 0.0f);
                         transform.Scale.y = transform.Scale.x;
                     } else
                     {
-                        DrawFloatControl("Rotation", &transform.Rotation);
-
                         if (transform.KeepRatio)
                         {
                             DrawFloatControl("Scale", &transform.Scale.x, 0.0f);
@@ -87,54 +84,49 @@ namespace Grafix
 
                     if (ImGui::Button("Apply"))
                     {
+                        auto transformMatrix = m_SelectedEntity.GetComponent<TransformComponent>().GetTransformMatrix();
+
                         if (m_SelectedEntity.HasComponent<LineComponent>())
                         {
                             auto& line = m_SelectedEntity.GetComponent<LineComponent>();
-                            auto transform = m_SelectedEntity.GetComponent<TransformComponent>().GetTransformMatrix();
 
-                            line.P0 = transform * glm::vec3(line.P0, 1.0f);
-                            line.P1 = transform * glm::vec3(line.P1, 1.0f);
+                            line.P0 = Math::Transform(transformMatrix, line.P0);
+                            line.P1 = Math::Transform(transformMatrix, line.P1);
                         } else if (m_SelectedEntity.HasComponent<CircleComponent>())
                         {
                             auto& circle = m_SelectedEntity.GetComponent<CircleComponent>();
 
-                            auto& transform = m_SelectedEntity.GetComponent<TransformComponent>();
-                            auto transformMatrix = m_SelectedEntity.GetComponent<TransformComponent>().GetTransformMatrix();
-
-                            circle.Center = transformMatrix * glm::vec3(circle.Center, 1.0f);
-                            circle.Radius = transform.Scale.x * circle.Radius;
+                            circle.Center = Math::Transform(transformMatrix, circle.Center);
+                            circle.Radius = circle.Radius * transform.Scale.x;
                         } else if (m_SelectedEntity.HasComponent<PolygonComponent>())
                         {
                             auto& polygon = m_SelectedEntity.GetComponent<PolygonComponent>();
-                            auto transform = m_SelectedEntity.GetComponent<TransformComponent>().GetTransformMatrix();
 
                             for (glm::vec2& vertex : polygon.Vertices)
-                                vertex = transform * glm::vec3(vertex, 1.0f);
+                                vertex = Math::Transform(transformMatrix, vertex);
                         }
-                        m_SelectedEntity.RemoveComponent<TransformComponent>();
+
+                        transform = TransformComponent();
                     }
 
                     ImGui::SameLine();
 
                     if (ImGui::Button("Cancel"))
-                        m_SelectedEntity.RemoveComponent<TransformComponent>();
+                        transform = TransformComponent();
                 } else
                 {
-                    if (m_SelectedEntity.HasComponent<TagComponent>())
-                    {
-                        ImGui::Text("Tag");
-                        ImGui::SameLine();
-                        auto& tag = m_SelectedEntity.GetComponent<TagComponent>().Tag;
+                    ImGui::Text("Tag");
+                    ImGui::SameLine();
+                    auto& tag = m_SelectedEntity.GetComponent<TagComponent>().Tag;
 
-                        char buffer[256];
-                        memset(buffer, 0, sizeof(buffer));
-                        strcpy_s(buffer, sizeof(buffer), tag.c_str());
+                    char buffer[256];
+                    memset(buffer, 0, sizeof(buffer));
+                    strcpy_s(buffer, sizeof(buffer), tag.c_str());
 
-                        if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
-                            tag = std::string(buffer);
+                    if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
+                        tag = std::string(buffer);
 
-                        ImGui::Separator();
-                    }
+                    ImGui::Separator();
 
                     if (m_SelectedEntity.HasComponent<LineComponent>())
                     {
@@ -181,8 +173,6 @@ namespace Grafix
                         DrawFloat2Control("Center", &circle.Center.x, &circle.Center.y);
                         DrawFloatControl("Radius", &circle.Radius, 0.0f);
 
-                        ImGui::Checkbox("Show Center", &circle.ShowCenter);
-
                         ImGui::Separator();
 
                         ImGui::Text("Color");
@@ -198,8 +188,6 @@ namespace Grafix
                         DrawFloatControl("Angle 2", &arc.Angle2);
                         ImGui::Checkbox("Major", &arc.Major);
 
-                        ImGui::Checkbox("Show Center", &arc.ShowCenter);
-
                         ImGui::Separator();
 
                         ImGui::Text("Color");
@@ -209,11 +197,13 @@ namespace Grafix
                     {
                         auto& polygon = m_SelectedEntity.GetComponent<PolygonComponent>();
 
-                        for (int i = 0; i < polygon.Vertices.size(); ++i)
+                        for (int i = 0; i < polygon.Vertices.size() - 1; ++i)
                         {
                             ImGui::PushID(i);
                             std::string label = "Vertex " + std::to_string(i + 1);
                             DrawFloat2Control(label, &polygon.Vertices[i].x, &polygon.Vertices[i].y);
+                            if (i == 0)
+                                polygon.Vertices.back() = polygon.Vertices.front();
                             ImGui::PopID();
                         }
 

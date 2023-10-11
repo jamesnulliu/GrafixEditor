@@ -12,12 +12,14 @@
 
 #include "Grafix/Input/Input.h"
 
-#include "Grafix/Renderer/Image.h"
 #include "Grafix/Renderer/Renderer.h"
-#include "Grafix/Renderer/EditorCamera.h"
+#include "Grafix/Renderer/Camera.h"
 
 #include "Grafix/Scene/Scene.h"
 #include "Grafix/Scene/Entity.h"
+#include "Grafix/Scene/Components.h"
+
+#include "Grafix/Math/Transformation.h"
 
 #include <imgui.h>
 

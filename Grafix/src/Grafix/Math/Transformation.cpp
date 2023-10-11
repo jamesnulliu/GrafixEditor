@@ -1,4 +1,5 @@
 #include "pch.h";
+#include "Transformation.h"
 
 namespace Grafix
 {
@@ -41,6 +42,11 @@ namespace Grafix
                 0.0f, scale.y, 0.0f,
                 0.0f, 0.0f, 1.0f
             };
+        }
+
+        glm::vec2 Math::Transform(const glm::mat3& matrix, const glm::vec2& point)
+        {
+            return glm::vec2(matrix * glm::vec3(point, 1.0f));
         }
     }
 }

@@ -8,7 +8,7 @@ namespace Grafix
 {
     struct TransformComponent final
     {
-        glm::vec2 PivotPoint{ 0.0f, 0.0f };
+        glm::vec2 Pivot{ 0.0f, 0.0f };
 
         glm::vec2 Translation{ 0.0f, 0.0f };
         float Rotation = 0.0f;
@@ -21,7 +21,7 @@ namespace Grafix
 
         glm::mat3 GetTransformMatrix() const
         {
-            glm::mat3 initialTranslationMatrix = Math::CalcTranslationMatrix(-PivotPoint);
+            glm::mat3 initialTranslationMatrix = Math::CalcTranslationMatrix(-Pivot);
 
             glm::mat3 translationMatrix = Math::CalcTranslationMatrix(Translation);
             glm::mat3 rotationMatrix = Math::CalcRotationMatrix(glm::radians(Rotation));
@@ -29,7 +29,7 @@ namespace Grafix
 
             glm::mat3 transformMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 
-            glm::mat3 finalTranslationMatrix = Math::CalcTranslationMatrix(PivotPoint);
+            glm::mat3 finalTranslationMatrix = Math::CalcTranslationMatrix(Pivot);
 
             return finalTranslationMatrix * transformMatrix * initialTranslationMatrix;
         }
@@ -67,6 +67,8 @@ namespace Grafix
 
         LineComponent() = default;
         LineComponent(const LineComponent&) = default;
+
+        glm::vec2 GetCenterOfGravity() const { return (P0 + P1) / 2.0f; }
     };
 
     struct CircleComponent final
@@ -76,12 +78,10 @@ namespace Grafix
 
         glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
 
-        // Aux
-        bool ShowCenter = false;
-        bool ShowRadius = false;
-
         CircleComponent() = default;
         CircleComponent(const CircleComponent&) = default;
+
+        glm::vec2 GetCenterOfGravity() const { return Center; }
     };
 
     struct ArcComponent final
@@ -94,18 +94,20 @@ namespace Grafix
 
         glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
 
-        // Aux
-        bool ShowCenter = false;
-        bool ShowRadius = false;
-
         ArcComponent() = default;
         ArcComponent(const ArcComponent&) = default;
+
+        glm::vec2 GetCenterOfGravity() const
+        {
+            float midAngle = (Angle1 + Angle2) / 2.0f;
+            glm::vec2 radiusVector = glm::vec2(glm::cos(glm::radians(midAngle)), glm::sin(glm::radians(midAngle)));
+        }
     };
 
     struct PolygonComponent final
     {
+        // The number of vertices must be at least 4
         std::vector<glm::vec2> Vertices;
-        bool IsClosed = false;
 
         glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
 
