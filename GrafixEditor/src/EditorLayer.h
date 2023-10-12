@@ -34,6 +34,7 @@ namespace Grafix
         void UpdateMousePosInCanvas();
         bool IsMouseInViewport() const;
 
+        void OnBucketToolUpdate();
         void OnPenToolUpdate();
         void OnLineToolUpdate();
         void OnArcToolUpdate();

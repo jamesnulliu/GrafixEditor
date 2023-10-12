@@ -29,6 +29,10 @@ namespace Grafix
                 auto& polygon = entity.GetComponent<PolygonComponent>();
                 m_Renderer.DrawPolygon(transform, polygon.Vertices, polygon.Color);
             }
+            else if (entity.HasComponent<SeedFillComponent>()) {
+                auto& seed = entity.GetComponent<SeedFillComponent>();
+                m_Renderer.Fill(seed.SeedPoint, seed.FillColor);
+            }
         }
 
         // Aux lines
@@ -65,40 +69,41 @@ namespace Grafix
         m_EditorScene = std::make_shared<Scene>();
         m_HierarchyPanel.BindScene(m_EditorScene);
 
-        // Game
-        auto entity = m_EditorScene->CreateEntity("Bird");
-        auto& transform = entity.GetComponent<TransformComponent>();
-        transform.Translation = { 420.0f, 360.0f };
-        auto& triangle = entity.AddComponent<PolygonComponent>();
-        triangle.Vertices = { { -20.0f, 30.0f }, { -20.0f, -30.0f }, { 40.0f, 0.0f }, { -20.0f, 30.0f } };
-        triangle.Color = glm::vec3(1.0f, 0.824f, 0.0f);
+        ////// Game
+        ////auto entity = m_EditorScene->CreateEntity("Bird");
+        ////auto& transform = entity.GetComponent<TransformComponent>();
+        ////transform.Translation = { 420.0f, 360.0f };
+        ////auto& triangle = entity.AddComponent<PolygonComponent>();
+        ////triangle.Vertices = { { -20.0f, 30.0f }, { -20.0f, -30.0f }, { 40.0f, 0.0f }, { -20.0f, 30.0f } };
+        ////triangle.Color = glm::vec3(1.0f, 0.824f, 0.0f);
     }
 
     void EditorLayer::OnUpdate()
     {
-        // Game
-        auto entity = m_EditorScene->GetEntity("Bird");
-        auto& transform = entity.GetComponent<TransformComponent>();
-        transform.Translation.x += 0.4f;
+        ////// Game
+        ////auto entity = m_EditorScene->GetEntity("Bird");
+        ////auto& transform = entity.GetComponent<TransformComponent>();
+        ////transform.Translation.x += 0.4f;
 
-        if (Input::IsKeyPressed(Key::Space))
-        {
-            transform.Translation.y += 1.0f;
-            transform.Rotation = std::max(transform.Rotation + 0.0004f, 30.0f);
-        } else
-        {
-            transform.Translation.y -= 1.0f;
-            transform.Rotation = std::min(transform.Rotation - 0.0004f, -30.0f);
-        }
+        ////if (Input::IsKeyPressed(Key::Space))
+        ////{
+        ////    transform.Translation.y += 1.0f;
+        ////    transform.Rotation = std::max(transform.Rotation + 0.0004f, 30.0f);
+        ////} else
+        ////{
+        ////    transform.Translation.y -= 1.0f;
+        ////    transform.Rotation = std::min(transform.Rotation - 0.0004f, -30.0f);
+        ////}
 
         UpdateMousePosInCanvas();
 
-        m_Camera.SetPosition(glm::vec2{ transform.Translation.x - 320.f, 0.0f });
-        m_Camera.OnUpdate();
+        ////m_Camera.SetPosition(glm::vec2{ transform.Translation.x - 320.f, 0.0f });
+        ////m_Camera.OnUpdate();
 
         switch (m_ToolState)
         {
         case ToolState::Move: { break; }
+        case ToolState::Bucket: { OnBucketToolUpdate(); break; }
         case ToolState::Line: { OnLineToolUpdate(); break; }
         case ToolState::Arc: { OnArcToolUpdate(); break; }
         case ToolState::Circle: { OnCircleToolUpdate(); break; }
@@ -416,6 +421,19 @@ namespace Grafix
                 {
                 }
             }
+        }
+    }
+
+    void EditorLayer::OnBucketToolUpdate()
+    {
+        if (m_ViewportHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+        {
+            Entity entity = m_EditorScene->CreateEntity("Fill");
+            m_HierarchyPanel.SetSelectedEntity(entity);
+
+            auto& bucket = entity.AddComponent<SeedFillComponent>();
+            bucket.SeedPoint = m_MousePosInCanvas;
+            bucket.FillColor = m_PickedColor;
         }
     }
 

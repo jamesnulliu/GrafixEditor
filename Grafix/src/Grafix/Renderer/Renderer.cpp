@@ -8,6 +8,7 @@
 #include "Algorithms/CircleAlgorithm.h"
 #include "Algorithms/ArcAlgorithm.h"
 #include "Algorithms/PolygonAlgorithm.h"
+#include "Algorithms/SeedFillAlgorithm.h"
 
 namespace Grafix
 {
@@ -133,5 +134,11 @@ namespace Grafix
             { transformedCenter.x, transformedCenter.y + radius },
             color, lineStyle, dashLength
         );
+    }
+
+    void Renderer::Fill(const glm::vec2& seedPoint, const glm::vec3& fillColor)
+    {
+        uint32_t oldColor = m_Pixels[(uint32_t)seedPoint.x + (uint32_t)seedPoint.y * m_Image->GetWidth()];
+        SeedFillAlgorithm::Fill(seedPoint, RGBToUint32(fillColor), oldColor);
     }
 }

@@ -16,11 +16,31 @@ namespace Grafix
         s_Height = height;
     }
 
+    uint32_t GraphicsAlgorithm::GetWidth()
+    {
+        return s_Width;
+    }
+
+    uint32_t GraphicsAlgorithm::GetHeight()
+    {
+        return s_Height;
+    }
+
     void GraphicsAlgorithm::SetPixel(int x, int y, const glm::vec3& color)
+    {
+        SetPixel(x, y, RGBToUint32(color));
+    }
+
+    void GraphicsAlgorithm::SetPixel(int x, int y, uint32_t color)
     {
         if (x < 0 || x >= s_Width || y < 0 || y >= s_Height)
             return;
 
-        s_PixelData[(uint32_t)x + (uint32_t)y * s_Width] = RGBToUint32(color);
+        s_PixelData[(uint32_t)x + (uint32_t)y * s_Width] = color;
+    }
+    
+    uint32_t GraphicsAlgorithm::GetPixelValue(int x, int y)
+    {
+        return s_PixelData[x + y * s_Width];
     }
 }
