@@ -114,4 +114,12 @@ namespace Grafix
         PolygonComponent() = default;
         PolygonComponent(const PolygonComponent&) = default;
     };
+
+    struct SeedFillComponent final {
+        glm::vec2 SeedPoint{ 450.0f, 500.0f };   // 种子点坐标
+        glm::vec3 FillColor{ 0.2f, 0.2f, 0.2f };         // 填充颜色
+
+        SeedFillComponent() = default;
+        SeedFillComponent(const SeedFillComponent&) = default;
+    };
 }
