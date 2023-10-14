@@ -40,7 +40,7 @@ namespace Grafix
             else if (entity.HasComponent<CurveComponent>())
             {
                 auto& curve = entity.GetComponent<CurveComponent>();
-                m_Renderer.DrawCurve(curve.ControlPoints, curve.Color, curve.Order, curve.Step);
+                m_Renderer.DrawCurve(curve.ControlPoints, curve.Color, curve.Order, curve.Step, curve.Knots, curve.Weights);
             }
         }
 
@@ -527,6 +527,8 @@ namespace Grafix
                 auto& curve = entity.AddComponent<CurveComponent>();
 
                 curve.ControlPoints.push_back(m_MousePosInWorld);
+                curve.GenerateKnots();
+                curve.RandomWeights();
                 curve.Color = m_PickedColor;
             }
         }
@@ -545,7 +547,11 @@ namespace Grafix
             }
 
             if (m_ViewportHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+            {
                 curve.ControlPoints.push_back(m_MousePosInWorld);
+                curve.GenerateKnots();
+                curve.RandomWeights();
+            }
 
             if (ImGui::IsKeyPressed(ImGuiKey_Enter))
             {
