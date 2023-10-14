@@ -115,11 +115,25 @@ namespace Grafix
         PolygonComponent(const PolygonComponent&) = default;
     };
 
-    struct SeedFillComponent final {
+    struct SeedFillComponent final
+    {
         glm::vec2 SeedPoint{ 450.0f, 500.0f };   // 种子点坐标
         glm::vec3 FillColor{ 0.2f, 0.2f, 0.2f };         // 填充颜色
 
         SeedFillComponent() = default;
         SeedFillComponent(const SeedFillComponent&) = default;
+    };
+
+    struct CurveComponent final
+    {
+        std::vector<glm::vec2> ControlPoints{};
+
+        int Order = 3;
+        float Step = 0.001f;
+
+        glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
+
+        CurveComponent() = default;
+        CurveComponent(const CurveComponent&) = default;
     };
 }

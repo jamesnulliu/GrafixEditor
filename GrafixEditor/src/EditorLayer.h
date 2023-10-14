@@ -14,7 +14,7 @@ namespace Grafix
             Bucket,
             Line, Arc,
             Circle,
-            Pen
+            Pen, Curve
         };
 
     public:
@@ -39,6 +39,7 @@ namespace Grafix
         void OnLineToolUpdate();
         void OnArcToolUpdate();
         void OnCircleToolUpdate();
+        void OnCurveUpdate();
 
         void UI_MenuBar();
         void UI_Viewport();
@@ -68,12 +69,5 @@ namespace Grafix
         glm::vec3 m_AuxColor{ 0.5f, 0.5f, 0.5f };
 
         HierarchyPanel m_HierarchyPanel;
-
-        enum class ModeState
-        {
-            Editor, Game
-        };
-
-        ModeState m_ModeState = ModeState::Game;
     };
 }
