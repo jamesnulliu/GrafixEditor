@@ -118,11 +118,13 @@ namespace Grafix
         }
     }
 
-    void Renderer::DrawCurve(const std::vector<glm::vec2>& controlPoints, const glm::vec3& color, int order, float step)
+    void Renderer::DrawCurve(const std::vector<glm::vec2>& controlPoints, 
+        const glm::vec3& color, int order, float step,
+        const std::vector<float>& knots,const std::vector<float>& weights)
     {
-        ////if (controlPoints.size() >= order)
-        ////    CurveAlgorithm::Curve(controlPoints, order, step, color);
-        CurveAlgorithm::Bezier(controlPoints, step, color);
+       if (controlPoints.size() >= order)
+          CurveAlgorithm::NURBS(controlPoints, order, step, color, knots, weights);
+       //CurveAlgorithm::Bezier(controlPoints, step, color);
     }
 
     void Renderer::DrawCross(const glm::vec2& center, float radius, const glm::vec3& color, LineStyle lineStyle, float dashLength)
