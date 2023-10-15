@@ -64,6 +64,7 @@ namespace Grafix
         bool m_IsDrawing = false;
         bool m_IsTransforming = false;
         int m_OperationState = 1;
+        int m_ControlPointSize = 10;
 
         glm::vec3 m_PickedColor{ 0.9f, 0.9f, 0.9f };
         glm::vec3 m_AuxColor{ 0.5f, 0.5f, 0.5f };

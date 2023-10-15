@@ -118,13 +118,13 @@ namespace Grafix
         }
     }
 
-    void Renderer::DrawCurve(const std::vector<glm::vec2>& controlPoints, 
+    void Renderer::DrawCurve(const std::vector<glm::vec2>& controlPoints,
         const glm::vec3& color, int order, float step,
-        const std::vector<float>& knots,const std::vector<float>& weights)
+        const std::vector<float>& knots, const std::vector<float>& weights)
     {
-       if (controlPoints.size() >= order)
-          CurveAlgorithm::NURBS(controlPoints, order, step, color, knots, weights);
-       //CurveAlgorithm::Bezier(controlPoints, step, color);
+        if (controlPoints.size() >= order)
+            CurveAlgorithm::NURBS(controlPoints, order, step, color, knots, weights);
+        ////CurveAlgorithm::Bezier(controlPoints, step, color);
     }
 
     void Renderer::DrawCross(const glm::vec2& center, float radius, const glm::vec3& color, LineStyle lineStyle, float dashLength)
@@ -147,6 +147,17 @@ namespace Grafix
             { transformedCenter.x, transformedCenter.y + radius },
             color, lineStyle, dashLength
         );
+    }
+
+    void Renderer::DrawSquare(const glm::vec2& center, float length, const glm::vec3& color)
+    {
+        for (int i = center.y - length / 2.0f; i < center.y + length / 2.0f; i++)
+        {
+            for (int j = center.x - length / 2.0f; j < center.x + length / 2.0f; j++)
+            {
+                m_Pixels[(uint32_t)j + (uint32_t)i * m_Image->GetWidth()] = RGBToUint32(color);
+            }
+        }
     }
 
     void Renderer::Fill(const glm::vec2& seedPoint, const glm::vec3& fillColor)

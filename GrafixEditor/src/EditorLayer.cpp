@@ -67,16 +67,10 @@ namespace Grafix
                     glm::vec2{ glm::cos(glm::radians(arc.Angle2)), glm::sin(glm::radians(arc.Angle2)) };
                 m_Renderer.DrawLine(transform, arc.Center, arc.Center + delta2, m_AuxColor, LineStyle::Dashed, 20.0f);
             }
-            else if (entity.HasComponent<PolygonComponent>())
-            {
-                auto& polygon = entity.GetComponent<PolygonComponent>();
-                m_Renderer.DrawPolygon(transform, polygon.Vertices, polygon.Color);
-            }
             else if (entity.HasComponent<CurveComponent>())
             {
-                auto& curve = entity.GetComponent<CurveComponent>();
-                for (int i = 0; i < curve.ControlPoints.size() - 1; i++)
-                    m_Renderer.DrawLine(curve.ControlPoints[i], curve.ControlPoints[i + 1], m_AuxColor, LineStyle::Dashed, 20.0f);
+                for (const auto& point : entity.GetComponent<CurveComponent>().ControlPoints)
+                    m_Renderer.DrawSquare(point, m_ControlPointSize, m_AuxColor);
             }
         }
     }
@@ -183,17 +177,17 @@ namespace Grafix
             UI_Info();
 
             m_HierarchyPanel.OnUIRender();
+
+            // Update
+
+            m_Renderer.OnResize(m_CanvasWidth, m_CanvasHeight);
+            m_Camera.SetViewportSize((float)m_CanvasWidth, (float)m_CanvasHeight);
+
+            m_Renderer.BeginScene(m_Camera);
+            Render();
+            m_Renderer.EndScene();
         }
         ImGui::End(); // DockSpace
-
-        // Update
-
-        m_Renderer.OnResize(m_CanvasWidth, m_CanvasHeight);
-        m_Camera.SetViewportSize((float)m_CanvasWidth, (float)m_CanvasHeight);
-
-        m_Renderer.BeginScene(m_Camera);
-        Render();
-        m_Renderer.EndScene();
     }
 
     void EditorLayer::OnEvent(Event& e)

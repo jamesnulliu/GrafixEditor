@@ -67,13 +67,15 @@ namespace Grafix
                     {
                         DrawFloatControl("Scale", &transform.Scale.x, 0.0f);
                         transform.Scale.y = transform.Scale.x;
-                    } else
+                    }
+                    else
                     {
                         if (transform.KeepRatio)
                         {
                             DrawFloatControl("Scale", &transform.Scale.x, 0.0f);
                             transform.Scale.y = transform.Scale.x;
-                        } else
+                        }
+                        else
                         {
                             DrawFloat2Control("Scale", transform.Scale, 0.0f);
                         }
@@ -92,13 +94,15 @@ namespace Grafix
 
                             line.P0 = Math::Transform(transformMatrix, line.P0);
                             line.P1 = Math::Transform(transformMatrix, line.P1);
-                        } else if (m_SelectedEntity.HasComponent<CircleComponent>())
+                        }
+                        else if (m_SelectedEntity.HasComponent<CircleComponent>())
                         {
                             auto& circle = m_SelectedEntity.GetComponent<CircleComponent>();
 
                             circle.Center = Math::Transform(transformMatrix, circle.Center);
                             circle.Radius = circle.Radius * transform.Scale.x;
-                        } else if (m_SelectedEntity.HasComponent<PolygonComponent>())
+                        }
+                        else if (m_SelectedEntity.HasComponent<PolygonComponent>())
                         {
                             auto& polygon = m_SelectedEntity.GetComponent<PolygonComponent>();
 
@@ -113,7 +117,8 @@ namespace Grafix
 
                     if (ImGui::Button("Cancel"))
                         transform = TransformComponent();
-                } else
+                }
+                else
                 {
                     ImGui::Text("Tag");
                     ImGui::SameLine();
@@ -166,7 +171,8 @@ namespace Grafix
                         ImGui::Text("Color");
                         ImGui::SameLine();
                         ImGui::ColorEdit3("##Color", glm::value_ptr(line.Color));
-                    } else if (m_SelectedEntity.HasComponent<CircleComponent>())
+                    }
+                    else if (m_SelectedEntity.HasComponent<CircleComponent>())
                     {
                         auto& circle = m_SelectedEntity.GetComponent<CircleComponent>();
 
@@ -178,7 +184,8 @@ namespace Grafix
                         ImGui::Text("Color");
                         ImGui::SameLine();
                         ImGui::ColorEdit3("##Color", glm::value_ptr(circle.Color));
-                    } else if (m_SelectedEntity.HasComponent<ArcComponent>())
+                    }
+                    else if (m_SelectedEntity.HasComponent<ArcComponent>())
                     {
                         auto& arc = m_SelectedEntity.GetComponent<ArcComponent>();
 
@@ -193,7 +200,8 @@ namespace Grafix
                         ImGui::Text("Color");
                         ImGui::SameLine();
                         ImGui::ColorEdit3("##Color", glm::value_ptr(arc.Color));
-                    } else if (m_SelectedEntity.HasComponent<PolygonComponent>())
+                    }
+                    else if (m_SelectedEntity.HasComponent<PolygonComponent>())
                     {
                         auto& polygon = m_SelectedEntity.GetComponent<PolygonComponent>();
 
@@ -202,8 +210,6 @@ namespace Grafix
                             ImGui::PushID(i);
                             std::string label = "Vertex " + std::to_string(i + 1);
                             DrawFloat2Control(label, &polygon.Vertices[i].x, &polygon.Vertices[i].y);
-                            if (i == 0)
-                                polygon.Vertices.back() = polygon.Vertices.front();
                             ImGui::PopID();
                         }
 

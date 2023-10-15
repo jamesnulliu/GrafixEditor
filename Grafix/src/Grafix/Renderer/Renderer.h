@@ -35,10 +35,12 @@ namespace Grafix
         void DrawPolygon(const std::vector<glm::vec2>& vertices, const glm::vec3& color);
         void DrawPolygon(const TransformComponent& transform, const std::vector<glm::vec2>& vertices, const glm::vec3& color);
 
-        void DrawCurve(const std::vector<glm::vec2>& controlPoints, const glm::vec3& color, int order, float step,const std::vector<float>& knots,const std::vector<float>& weights);
+        void DrawCurve(const std::vector<glm::vec2>& controlPoints, const glm::vec3& color, int order, float step, const std::vector<float>& knots, const std::vector<float>& weights);
 
         void DrawCross(const glm::vec2& center, float radius, const glm::vec3& color, LineStyle lineStyle = LineStyle::Solid, float dashLength = 5.0f);
         void DrawCross(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color, LineStyle lineStyle = LineStyle::Solid, float dashLength = 5.0f);
+
+        void DrawSquare(const glm::vec2& center, float length, const glm::vec3& color);
 
         void Fill(const glm::vec2& seedPoint, const glm::vec3& fillColor);
     private:
