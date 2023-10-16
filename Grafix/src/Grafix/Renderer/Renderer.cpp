@@ -94,18 +94,11 @@ namespace Grafix
         DrawPolygon(TransformComponent(), vertices, color);
     }
 
-    // WRONG
     void Renderer::DrawPolygon(const TransformComponent& transform, const std::vector<glm::vec2>& vertices, const glm::vec3& color)
     {
-        // If the polygon is not closed, draw the lines between vertices
-        if (vertices.empty() || vertices.front() != vertices.back())
+        if (vertices.size()==0||vertices[0]!=vertices[vertices.size()-1])
         {
-            for (int i = 0; i < vertices.size() - 1; i++)
-                LineAlgorithm::Draw(
-                    Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), vertices[i])),
-                    Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), vertices[i + 1])),
-                    color
-                );
+
         }
         else
         {
