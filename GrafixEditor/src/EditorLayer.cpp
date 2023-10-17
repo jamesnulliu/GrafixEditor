@@ -18,7 +18,7 @@ namespace Grafix
 			if (entity.HasComponent<LineComponent>())
 			{
 				auto& line = entity.GetComponent<LineComponent>();
-				m_Renderer.DrawLine(transform, line.P0, line.P1, line.Color, line.Style, line.DashLength);
+				m_Renderer.DrawLine(transform, line.P0, line.P1, line.Color, line.Style, line.DashLength, line.Width);
 			}
 			else if (entity.HasComponent<CircleComponent>())
 			{
@@ -92,12 +92,12 @@ namespace Grafix
 			else if (entity.HasComponent<PolygonComponent>())
 			{
 				auto& polygon = entity.GetComponent<PolygonComponent>();
-				for (int i = 0; i < polygon.Vertices.size() - 1; i++)
+				/*for (int i = 0; i < polygon.Vertices.size() - 1; i++)
 				{
 					m_Renderer.DrawLine(transform, polygon.Vertices[i], polygon.Vertices[i + 1], m_AuxColor, LineStyle::Dashed, 20.0f);
 				}
 				if (polygon.Vertices.size() > 1)
-					m_Renderer.DrawLine(transform, polygon.Vertices[polygon.Vertices.size() - 1], polygon.Vertices[0], m_AuxColor, LineStyle::Dashed, 20.0f);
+					m_Renderer.DrawLine(transform, polygon.Vertices[polygon.Vertices.size() - 1], polygon.Vertices[0], m_AuxColor, LineStyle::Dashed, 20.0f);*/
 			}
 			else if (entity.HasComponent<CurveComponent>())
 			{

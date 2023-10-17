@@ -139,16 +139,16 @@ namespace Grafix
 
                         DrawFloat2Control("Point A", &line.P0.x, &line.P0.y);
                         DrawFloat2Control("Point B", &line.P1.x, &line.P1.y);
-                        DrawFloatControl("Width", &line.Width, 0.0f);
+                        DrawFloatControl("Width", &line.Width, 1.0f);
 
-                        const char* lineStyleStrings[] = { "Solid", "Dashed" };
+                        const char* lineStyleStrings[] = { "Solid", "Dashed","Dotted"};
                         const char* currentLineStyleString = lineStyleStrings[(int)line.Style];
 
                         ImGui::Text("Line Style");
                         ImGui::SameLine();
                         if (ImGui::BeginCombo("##Line Style", currentLineStyleString))
                         {
-                            for (int i = 0; i < 2; ++i)
+                            for (int i = 0; i < 3; ++i)
                             {
                                 bool isSelected = currentLineStyleString == lineStyleStrings[i];
                                 if (ImGui::Selectable(lineStyleStrings[i], isSelected))

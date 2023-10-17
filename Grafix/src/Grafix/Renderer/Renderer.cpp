@@ -54,12 +54,12 @@ namespace Grafix
         DrawLine(TransformComponent(), p0, p1, color, style, dashLength);
     }
 
-    void Renderer::DrawLine(const TransformComponent& transform, const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, LineStyle style, float dashLength)
+    void Renderer::DrawLine(const TransformComponent& transform, const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, LineStyle style, float dashLength, float width)
     {
         LineAlgorithm::Draw(
             Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), p0)),
             Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), p1)),
-            color, style, dashLength
+            color, style, dashLength, width
         );
     }
 
