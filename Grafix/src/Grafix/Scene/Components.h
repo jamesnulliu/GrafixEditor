@@ -52,7 +52,7 @@ namespace Grafix
 
 	enum class LineStyle
 	{
-		Solid, Dashed
+		Solid, Dashed , Dotted
 	};
 
 	struct LineComponent final
