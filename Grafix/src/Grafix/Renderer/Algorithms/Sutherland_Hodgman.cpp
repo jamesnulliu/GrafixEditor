@@ -16,7 +16,12 @@ namespace Grafix
 			int k = (i + 1) % area.size();
 			Vertices = Clip(Vertices, area[i], area[k]);
 		}
-		Vertices.push_back(Vertices[0]);
+
+		if (Vertices.size() != 0)
+		{
+			Vertices.push_back(Vertices[0]);
+		}
+
 		return Vertices;
 	}
 
