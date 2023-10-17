@@ -47,11 +47,9 @@ namespace Grafix
 				std::vector<glm::vec2> temp;
 				temp.resize(n);
 				for (int i = 0; i < n; i++) 
-				{
 					temp[i] = Grafix::Math::Transform(transform.GetTransformMatrix(), polygon.Vertices[i]);
-				}
-				
-				if (polygon.Vertices.size() >= 2 && polygon.Vertices[0] == polygon.Vertices[polygon.Vertices.size() - 1])
+
+				if (temp.size() >= 2 && temp[0] == temp[polygon.Vertices.size() - 1])
 					temp = Grafix::SutherlandHodgman::SutherHodgClip(temp, clip);
 				
 				m_Renderer.DrawPolygon(temp, polygon.Color);
