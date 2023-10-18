@@ -31,9 +31,10 @@ namespace Grafix
         bool OnKeyPressed(KeyPressedEvent& e);
         bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
-        void UpdateMousePosInCanvas();
+        void UpdateMousePos();
         bool IsMouseInViewport() const;
 
+        void OnMoveToolUpdate();
         void OnBucketToolUpdate();
         void OnPenToolUpdate();
         void OnLineToolUpdate();
@@ -55,6 +56,7 @@ namespace Grafix
 
         glm::vec2 m_MousePosInCanvas{ 0.0f, 0.0f };
         glm::vec2 m_MousePosInWorld{ 0.0f, 0.0f };
+        glm::vec2 m_MousePositionDelta = { 0.0f, 0.0f };
 
         Renderer m_Renderer;
         Camera m_Camera;
@@ -65,6 +67,8 @@ namespace Grafix
         bool m_IsTransforming = false;
         int m_OperationState = 1;
         int m_ControlPointSize = 10;
+
+        glm::vec2* m_SelectedControlPoint = nullptr;
 
         glm::vec3 m_PickedColor{ 0.9f, 0.9f, 0.9f };
         glm::vec3 m_AuxColor{ 0.5f, 0.5f, 0.5f };
