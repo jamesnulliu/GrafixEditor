@@ -52,7 +52,7 @@ namespace Grafix
 
 	enum class LineStyle
 	{
-		Solid, Dashed , Dotted
+		Solid, Dashed, Dotted
 	};
 
 	struct LineComponent final
@@ -101,8 +101,29 @@ namespace Grafix
 
 		glm::vec2 GetCenterOfGravity() const
 		{
-			float midAngle = (Angle1 + Angle2) / 2.0f;
-			glm::vec2 radiusVector = glm::vec2(glm::cos(glm::radians(midAngle)), glm::sin(glm::radians(midAngle)));
+			glm::vec2 Gpoint{ Center }; 
+			float a1 = glm::mod(Angle1, 360.0f);
+			float a2 = glm::mod(Angle2, 360.0f);
+
+			float beginAngle = glm::min(a1, a2), endAngle = glm::max(a1, a2);
+
+			if ((endAngle - beginAngle) > 180.0f)
+			{
+				std::swap(beginAngle, endAngle);
+				endAngle += 360.0f;
+			}
+
+			float midAngle = (endAngle - beginAngle) / 2.0f;
+			float midAngleRadian = glm::radians(midAngle);
+			float distance = Radius * (glm::sin(midAngleRadian)) / midAngleRadian;
+
+			if (Major)
+				distance = distance - Radius;
+
+			Gpoint.x = Center.x + distance * glm::cos(glm::radians(beginAngle + midAngle));
+			Gpoint.y = Center.y + distance * glm::sin(glm::radians(beginAngle + midAngle));
+
+			return Gpoint;
 		}
 	};
 
@@ -147,7 +168,7 @@ namespace Grafix
 			for (int i = 0; i < Order; i++) {
 				Knots[i] = 0;
 			}
-			for (int i = n - 1; i >= n - Order ; i--) {
+			for (int i = n - 1; i >= n - Order; i--) {
 				Knots[i] = 1;
 			}
 			for (int i = Order; i <= n - Order - 1; i++)
@@ -160,11 +181,11 @@ namespace Grafix
 
 		void RandomWeights()
 		{
-			int n=ControlPoints.size();
+			int n = ControlPoints.size();
 			Weights.clear();
 			srand(time(NULL));
 			for (int i = 0; i < n; i++) {
-				float r = (float)rand() / RAND_MAX; 
+				float r = (float)rand() / RAND_MAX;
 				Weights.push_back(r);
 			}
 			float sum = 0;
