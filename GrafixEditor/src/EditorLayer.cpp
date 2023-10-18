@@ -3,6 +3,7 @@
 #include "Grafix/Renderer/Algorithms/MidPointClip.h"
 #include "Grafix/Renderer/Algorithms/Sutherland_Hodgman.h"
 #include "Grafix/Math/Transformation.h"
+#include <iostream>
 namespace Grafix
 {
 	static uint32_t s_MaxViewportSize = 16384;
@@ -84,10 +85,14 @@ namespace Grafix
 				glm::vec2 delta1 = arc.Radius *
 					glm::vec2{ glm::cos(glm::radians(arc.Angle1)), glm::sin(glm::radians(arc.Angle1)) };
 				m_Renderer.DrawLine(transform, arc.Center, arc.Center + delta1, m_AuxColor, LineStyle::Dashed, 20.0f);
+				
 
 				glm::vec2 delta2 = arc.Radius *
 					glm::vec2{ glm::cos(glm::radians(arc.Angle2)), glm::sin(glm::radians(arc.Angle2)) };
 				m_Renderer.DrawLine(transform, arc.Center, arc.Center + delta2, m_AuxColor, LineStyle::Dashed, 20.0f);
+				
+				transform.Pivot = arc.GetCenterOfGravity();
+			    m_Renderer.DrawCross(transform, transform.Pivot, 5.0f, m_AuxColor, LineStyle::Solid);
 			}
 			else if (entity.HasComponent<PolygonComponent>())
 			{
@@ -785,6 +790,11 @@ namespace Grafix
 		{
 			auto& circle = selectedEntity.GetComponent<CircleComponent>();
 			transform.Pivot = circle.GetCenterOfGravity();
+		}
+		else if (selectedEntity.HasComponent<ArcComponent>())
+		{
+			auto& arc = selectedEntity.GetComponent<ArcComponent>();
+			transform.Pivot = arc.GetCenterOfGravity();
 		}
 		else if (selectedEntity.HasComponent<PolygonComponent>())
 		{
