@@ -1,4 +1,5 @@
 #include "EditorLayer.h"
+
 #include "Grafix/Renderer/Algorithms/CohenSutherland.h"
 #include "Grafix/Renderer/Algorithms/MidPointClip.h"
 #include "Grafix/Renderer/Algorithms/SutherlandHodgman.h"
@@ -777,6 +778,11 @@ namespace Grafix
             auto& circle = selectedEntity.GetComponent<CircleComponent>();
             transform.Pivot = circle.GetCenterOfGravity();
         }
+        else if (selectedEntity.HasComponent<ArcComponent>())
+        {
+            auto& arc = selectedEntity.GetComponent<ArcComponent>();
+            transform.Pivot = arc.GetCenterOfGravity();
+        }
         else if (selectedEntity.HasComponent<PolygonComponent>())
         {
             auto& polygon = selectedEntity.GetComponent<PolygonComponent>();
@@ -784,15 +790,6 @@ namespace Grafix
             for (auto& vertex : polygon.Vertices)
                 referencePoint += vertex;
             transform.Pivot = referencePoint / (float)polygon.Vertices.size();
-        }
-        else if (selectedEntity.HasComponent<CurveComponent>())
-        {
-            auto& curve = selectedEntity.GetComponent<CurveComponent>();
-            glm::vec2 referencePoint = glm::vec2{ 0.0f, 0.0f };
-            for (auto& vertex : curve.ControlPoints)
-                referencePoint += vertex;
-
-            transform.Pivot = referencePoint / (float)curve.ControlPoints.size();
         }
     }
 }

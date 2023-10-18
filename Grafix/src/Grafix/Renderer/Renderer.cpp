@@ -95,12 +95,25 @@ namespace Grafix
         DrawArc(TransformComponent(), center, radius, angle1, angle2, major, color, lineWidth, lineStyle);
     }
 
-    // Wrong
     void Renderer::DrawArc(const TransformComponent& transform, const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color, float lineWidth, LineStyleType lineStyle)
     {
-        ArcAlgorithm::Midpoint(
-            Math::Transform(transform.GetTransformMatrix(), center),
-            radius, angle1, angle2, major, color, lineWidth);
+        glm::vec2 angle{ 0,0 };
+        auto newCenter = Math::Transform(transform.GetTransformMatrix(), center);
+
+        glm::vec2 delta1 = radius *
+            glm::vec2{ glm::cos(glm::radians(angle1)), glm::sin(glm::radians(angle1)) };
+
+        glm::vec2 delta2 = radius *
+            glm::vec2{ glm::cos(glm::radians(angle2)), glm::sin(glm::radians(angle2)) };
+
+        delta1 = Math::Transform(transform.GetTransformMatrix(), delta1 + center) - newCenter;
+        delta2 = Math::Transform(transform.GetTransformMatrix(), delta2 + center) - newCenter;
+
+        angle[0] = glm::atan(delta1.y, delta1.x);
+        angle[1] = glm::atan(delta2.y, delta2.x);
+        angle = glm::degrees(angle);
+
+        ArcAlgorithm::Midpoint(newCenter, radius, angle[0], angle[1], major, color, lineWidth);
     }
 
     void Renderer::DrawPolygon(const std::vector<glm::vec2>& vertices, const glm::vec3& color)

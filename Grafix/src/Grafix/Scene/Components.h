@@ -110,8 +110,29 @@ namespace Grafix
 
         glm::vec2 GetCenterOfGravity() const
         {
-            float midAngle = (Angle1 + Angle2) / 2.0f;
-            glm::vec2 radiusVector = glm::vec2(glm::cos(glm::radians(midAngle)), glm::sin(glm::radians(midAngle)));
+            glm::vec2 Gpoint{ Center };
+            float a1 = glm::mod(Angle1, 360.0f);
+            float a2 = glm::mod(Angle2, 360.0f);
+
+            float beginAngle = glm::min(a1, a2), endAngle = glm::max(a1, a2);
+
+            if ((endAngle - beginAngle) > 180.0f)
+            {
+                std::swap(beginAngle, endAngle);
+                endAngle += 360.0f;
+            }
+
+            float midAngle = (endAngle - beginAngle) / 2.0f;
+            float midAngleRadian = glm::radians(midAngle);
+            float distance = Radius * (glm::sin(midAngleRadian)) / midAngleRadian;
+
+            if (Major)
+                distance = distance - Radius;
+
+            Gpoint.x = Center.x + distance * glm::cos(glm::radians(beginAngle + midAngle));
+            Gpoint.y = Center.y + distance * glm::sin(glm::radians(beginAngle + midAngle));
+
+            return Gpoint;
         }
     };
 
@@ -162,8 +183,10 @@ namespace Grafix
         glm::vec2 GetCenterOfGravity() const
         {
             glm::vec2 centerOfGravity{ 0.0f, 0.0f };
+
             for (const auto& point : ControlPoints)
                 centerOfGravity += point;
+
             centerOfGravity /= (float)ControlPoints.size();
             return centerOfGravity;
         }
