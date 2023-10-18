@@ -34,8 +34,6 @@ namespace Grafix
         using EdgeTable = std::vector<std::vector<Edge>>;
         using ActiveEdgeTable = std::vector<Edge>;
     public:
-        static void Draw(const std::vector<glm::vec2>& vertices, const glm::vec3& color);
-    private:
         static void Scanline(const std::vector<glm::vec2>& vertices, const glm::vec3& color);
     };
 }

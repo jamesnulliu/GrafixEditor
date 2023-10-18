@@ -7,9 +7,8 @@ namespace Grafix
     class CircleAlgorithm : public GraphicsAlgorithm
     {
     public:
-        static void Draw(const glm::vec2& center, float radius, const glm::vec3& color);
+        static void Midpoint(const glm::vec2& center, float radius, const glm::vec3& color, float lineWidth, LineStyleType lineStyle);
     private:
-        static void Midpoint(const glm::vec2& center, float radius, const glm::vec3& color);
-        static void SetCirclePixels(int centerX, int centerY, int x, int y, const glm::vec3& color);
+        static void SetCirclePixels(int centerX, int centerY, int x, int y, uint32_t colorValue, uint32_t lineWidth);
     };
 }

@@ -4,6 +4,7 @@
 #include "Grafix/Utils/ColorConvert.hpp"
 #include "Grafix/Math/Transformation.h"
 
+#include "Algorithms/GraphicsAlgorithm.h"
 #include "Algorithms/LineAlgorithm.h"
 #include "Algorithms/CircleAlgorithm.h"
 #include "Algorithms/ArcAlgorithm.h"
@@ -21,14 +22,11 @@ namespace Grafix
         {
             if (m_Image->GetWidth() == newWidth && m_Image->GetHeight() == newHeight)
                 return;
-
             m_Image->Resize(newWidth, newHeight);
-            GF_INFO("Image resized: {0}x{1}", m_Image->GetWidth(), m_Image->GetHeight());
         }
         else
         {
             m_Image = std::make_shared<Image>(newWidth, newHeight, ImageFormat::RGBA);
-            GF_INFO("Image created: {0}x{1}", m_Image->GetWidth(), m_Image->GetHeight());
         }
 
         delete[] m_Pixels;
@@ -49,44 +47,60 @@ namespace Grafix
         m_Image->SetPiexels(m_Pixels);
     }
 
-    void Renderer::DrawLine(const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, LineStyle style, float dashLength)
+    void Renderer::DrawLine(const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, float lineWidth, LineStyleType style, LineAlgorithmType algorithm)
     {
-        DrawLine(TransformComponent(), p0, p1, color, style, dashLength);
+        DrawLine(TransformComponent(), p0, p1, color, lineWidth, style);
     }
 
-    void Renderer::DrawLine(const TransformComponent& transform, const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, LineStyle style, float dashLength, float width)
+    void Renderer::DrawLine(const TransformComponent& transform, const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, float lineWidth, LineStyleType style, LineAlgorithmType algorithm)
     {
-        LineAlgorithm::Draw(
-            Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), p0)),
-            Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), p1)),
-            color, style, dashLength, width
-        );
+        switch (algorithm)
+        {
+        case LineAlgorithmType::Midpoint:
+        {
+            LineAlgorithm::Midpoint(
+                Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), p0)),
+                Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), p1)),
+                color, lineWidth, style
+            );
+            break;
+        }
+        case LineAlgorithmType::Bresenham:
+        {
+            LineAlgorithm::Bresenham(
+                Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), p0)),
+                Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), p1)),
+                color, lineWidth, style
+            );
+            break;
+        }
+        }
     }
 
-    void Renderer::DrawCircle(const glm::vec2& center, float radius, const glm::vec3& color)
+    void Renderer::DrawCircle(const glm::vec2& center, float radius, const glm::vec3& color, float lineWidth, LineStyleType lineStyle)
     {
-        DrawCircle(TransformComponent(), center, radius, color);
+        DrawCircle(TransformComponent(), center, radius, color, lineWidth, lineStyle);
     }
 
-    void Renderer::DrawCircle(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color)
+    void Renderer::DrawCircle(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color, float lineWidth, LineStyleType lineStyle)
     {
-        CircleAlgorithm::Draw(
+        CircleAlgorithm::Midpoint(
             Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), center)),
-            radius, color
+            radius, color, lineWidth, lineStyle
         );
     }
 
-    void Renderer::DrawArc(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color)
+    void Renderer::DrawArc(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color, float lineWidth, LineStyleType lineStyle)
     {
-        DrawArc(TransformComponent(), center, radius, angle1, angle2, major, color);
+        DrawArc(TransformComponent(), center, radius, angle1, angle2, major, color, lineWidth, lineStyle);
     }
 
     // Wrong
-    void Renderer::DrawArc(const TransformComponent& transform, const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color)
+    void Renderer::DrawArc(const TransformComponent& transform, const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color, float lineWidth, LineStyleType lineStyle)
     {
-        ArcAlgorithm::Draw(
+        ArcAlgorithm::Midpoint(
             Math::Transform(transform.GetTransformMatrix(), center),
-            radius, angle1, angle2, major, color);
+            radius, angle1, angle2, major, color, lineWidth);
     }
 
     void Renderer::DrawPolygon(const std::vector<glm::vec2>& vertices, const glm::vec3& color)
@@ -96,9 +110,8 @@ namespace Grafix
 
     void Renderer::DrawPolygon(const TransformComponent& transform, const std::vector<glm::vec2>& vertices, const glm::vec3& color)
     {
-        if (vertices.size()==0||vertices[0]!=vertices[vertices.size()-1])
+        if (vertices.size() == 0 || vertices[0] != vertices[vertices.size() - 1])
         {
-
         }
         else
         {
@@ -107,50 +120,65 @@ namespace Grafix
             for (auto& vertex : transformedVertices)
                 vertex = Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), vertex));
 
-            PolygonAlgorithm::Draw(transformedVertices, color);
+            PolygonAlgorithm::Scanline(transformedVertices, color);
         }
     }
 
-    void Renderer::DrawCurve(const std::vector<glm::vec2>& controlPoints,
-        const glm::vec3& color, int order, float step,
-        const std::vector<float>& knots, const std::vector<float>& weights)
+    void Renderer::DrawCurve(const std::vector<glm::vec2>& controlPoints, const glm::vec3& color, int order, float step,
+        std::vector<float>& knots, std::vector<float>& weights, float lineWidth, CurveAlgorithmType algorithm)
     {
-        if (controlPoints.size() >= order)
-            CurveAlgorithm::NURBS(controlPoints, order, step, color, knots, weights);
-        ////CurveAlgorithm::Bezier(controlPoints, step, color);
+        DrawCurve(TransformComponent(), controlPoints, color, order, step, knots, weights, lineWidth, algorithm);
     }
 
-    void Renderer::DrawCross(const glm::vec2& center, float radius, const glm::vec3& color, LineStyle lineStyle, float dashLength)
+    void Renderer::DrawCurve(const TransformComponent& transform, const std::vector<glm::vec2>& controlPoints,
+        const glm::vec3& color, int order, float step, std::vector<float>& knots,
+        std::vector<float>& weights, float lineWidth, CurveAlgorithmType algorithm)
     {
-        DrawCross(TransformComponent(), center, radius, color, lineStyle, dashLength);
+        std::vector<glm::vec2> transformedControlPoints(controlPoints);
+        for (auto& controlPoint : transformedControlPoints)
+            controlPoint = Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), controlPoint));
+
+        switch (algorithm)
+        {
+        case CurveAlgorithmType::Bezier:
+        {
+            CurveAlgorithm::Bezier(transformedControlPoints, step, color, lineWidth);
+            break;
+        }
+        case CurveAlgorithmType::NURBS:
+        {
+            if (controlPoints.size() >= order)
+                CurveAlgorithm::NURBS(transformedControlPoints, order, step, color, knots, weights, lineWidth);
+            break;
+        }
+        }
     }
 
-    void Renderer::DrawCross(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color, LineStyle lineStyle, float dashLength)
+    void Renderer::DrawCross(const glm::vec2& center, float radius, const glm::vec3& color)
+    {
+        DrawCross(TransformComponent(), center, radius, color);
+    }
+
+    void Renderer::DrawCross(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color)
     {
         glm::vec2 transformedCenter = Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), center));
 
-        LineAlgorithm::Draw(
+        LineAlgorithm::Bresenham(
             { transformedCenter.x - radius, transformedCenter.y },
             { transformedCenter.x + radius, transformedCenter.y },
-            color, lineStyle, dashLength
+            color, 1
         );
 
-        LineAlgorithm::Draw(
+        LineAlgorithm::Bresenham(
             { transformedCenter.x, transformedCenter.y - radius },
             { transformedCenter.x, transformedCenter.y + radius },
-            color, lineStyle, dashLength
+            color, 1
         );
     }
 
     void Renderer::DrawSquare(const glm::vec2& center, float length, const glm::vec3& color)
     {
-        for (int i = center.y - length / 2.0f; i < center.y + length / 2.0f; i++)
-        {
-            for (int j = center.x - length / 2.0f; j < center.x + length / 2.0f; j++)
-            {
-                m_Pixels[(uint32_t)j + (uint32_t)i * m_Image->GetWidth()] = RGBToUint32(color);
-            }
-        }
+        GraphicsAlgorithm::DrawSquare(center, length, color);
     }
 
     void Renderer::Fill(const glm::vec2& seedPoint, const glm::vec3& fillColor)

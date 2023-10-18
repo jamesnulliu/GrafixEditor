@@ -8,6 +8,5 @@ namespace Grafix
     {
     public:
         static void Fill(const glm::vec2& seedPoint, uint32_t fillColor, uint32_t oldColor);
-    private:
     };
 }

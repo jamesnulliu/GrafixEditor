@@ -23,22 +23,31 @@ namespace Grafix
 
         void SetClearColor(const glm::vec3& color) { m_ClearColor = color; }
 
-        void DrawLine(const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, LineStyle style = LineStyle::Solid, float dashLength = 5.0f);
-        void DrawLine(const TransformComponent& transform, const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, LineStyle style = LineStyle::Solid, float dashLength = 5.0f, float width = 1.0f);
+        void DrawLine(const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, float lineWidth,
+            LineStyleType style = LineStyleType::Solid, LineAlgorithmType algorithm = LineAlgorithmType::Bresenham);
+        void DrawLine(const TransformComponent& transform, const glm::vec2& p0, const glm::vec2& p1,
+            const glm::vec3& color, float lineWidth, LineStyleType style = LineStyleType::Solid, LineAlgorithmType algorithm = LineAlgorithmType::Bresenham);
 
-        void DrawCircle(const glm::vec2& center, float radius, const glm::vec3& color);
-        void DrawCircle(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color);
+        void DrawCircle(const glm::vec2& center, float radius, const glm::vec3& color, float lineWidth, LineStyleType style = LineStyleType::Solid);
+        void DrawCircle(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color, float lineWidth, LineStyleType style = LineStyleType::Solid);
 
-        void DrawArc(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color);
-        void DrawArc(const TransformComponent& transform, const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color);
+        void DrawArc(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color, float lineWidth, LineStyleType style = LineStyleType::Solid);
+        void DrawArc(const TransformComponent& transform, const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color, float lineWidth, LineStyleType style = LineStyleType::Solid);
 
         void DrawPolygon(const std::vector<glm::vec2>& vertices, const glm::vec3& color);
         void DrawPolygon(const TransformComponent& transform, const std::vector<glm::vec2>& vertices, const glm::vec3& color);
 
-        void DrawCurve(const std::vector<glm::vec2>& controlPoints, const glm::vec3& color, int order, float step, const std::vector<float>& knots, const std::vector<float>& weights);
+        void DrawCurve(const std::vector<glm::vec2>& controlPoints, const glm::vec3& color,
+            int order, float step, std::vector<float>& knots, std::vector<float>& weights,
+            float lineWidth, CurveAlgorithmType algorithm);
+        void DrawCurve(const TransformComponent& transform, const std::vector<glm::vec2>& controlPoints, const glm::vec3& color,
+            int order, float step, std::vector<float>& knots, std::vector<float>& weights,
+            float lineWidth, CurveAlgorithmType algorithm);
 
-        void DrawCross(const glm::vec2& center, float radius, const glm::vec3& color, LineStyle lineStyle = LineStyle::Solid, float dashLength = 5.0f);
-        void DrawCross(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color, LineStyle lineStyle = LineStyle::Solid, float dashLength = 5.0f);
+        // *************************** Not Reliant On Camera *************************** //
+
+        void DrawCross(const glm::vec2& center, float radius, const glm::vec3& color);
+        void DrawCross(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color);
 
         void DrawSquare(const glm::vec2& center, float length, const glm::vec3& color);
 
