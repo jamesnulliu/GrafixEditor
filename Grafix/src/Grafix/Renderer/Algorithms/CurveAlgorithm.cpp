@@ -6,7 +6,7 @@
 #include <iostream>
 namespace Grafix
 {
-    void CurveAlgorithm::Bezier(const std::vector<glm::vec2>& controlPoints, float step, const glm::vec3& color, float lineWidth)
+    void CurveAlgorithm::Bezier(const std::vector<glm::vec2>& controlPoints, float step, const glm::vec3& color)
     {
         uint32_t colorValue = RGBToUint32(color);
 
@@ -19,11 +19,11 @@ namespace Grafix
                 float factor = Math::NChooseK(n - 1, i) * pow(u, i) * pow(1 - u, n - 1 - i);
                 point += controlPoints[i] * factor;
             }
-            SetPixel((int)point.x, (int)point.y, colorValue, (uint32_t)lineWidth);
+            SetPixel((int)point.x, (int)point.y, colorValue);
         }
     }
 
-    void CurveAlgorithm::NURBS(const std::vector<glm::vec2>& controlPoints, int order, float step, const glm::vec3& color, std::vector<float>& knots, std::vector<float>& weights, float lineWidth)
+    void CurveAlgorithm::NURBS(const std::vector<glm::vec2>& controlPoints, int order, float step, const glm::vec3& color, std::vector<float>& knots, std::vector<float>& weights)
     {
         uint32_t colorValue = RGBToUint32(color);
 
@@ -42,7 +42,7 @@ namespace Grafix
                 point += controlPoints[i] * factor;
             }
 
-            SetPixel((int)point.x, (int)point.y, colorValue, (uint32_t)lineWidth);
+            SetPixel((int)point.x, (int)point.y, colorValue);
         }
     }
 

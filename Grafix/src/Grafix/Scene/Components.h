@@ -145,6 +145,17 @@ namespace Grafix
 
         PolygonComponent() = default;
         PolygonComponent(const PolygonComponent&) = default;
+
+        glm::vec2 GetCenterOfGravity() const
+        {
+            glm::vec2 centerOfGravity{ 0.0f, 0.0f };
+
+            for (int i = 0; i < Vertices.size() - 1; ++i)
+                centerOfGravity += Vertices[i];
+
+            centerOfGravity /= ((float)Vertices.size() - 1);
+            return centerOfGravity;
+        }
     };
 
     struct FillComponent final

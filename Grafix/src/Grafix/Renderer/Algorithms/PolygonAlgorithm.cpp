@@ -91,7 +91,7 @@ namespace Grafix
             {
                 int x1 = (int)(AEL[i].X + 0.5), x2 = (int)(AEL[i + 1].X + 0.5);
                 for (int x = x1; x < x2; ++x)
-                    SetPixel(x, y, colorValue, 1);
+                    SetSinglePixel(x, y, colorValue);
             }
 
             for (Edge& edge : AEL)

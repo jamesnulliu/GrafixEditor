@@ -11,10 +11,12 @@ namespace Grafix
         enum class ToolState : uint8_t
         {
             Move = 0,
-            Bucket,
-            Line, Arc,
+            Line,
             Circle,
-            Pen, Curve
+            Arc,
+            Fill,
+            Polygon,
+            Curve
         };
 
     public:
