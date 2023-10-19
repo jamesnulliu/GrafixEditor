@@ -11,12 +11,12 @@ namespace Grafix
         enum class ToolState : uint8_t
         {
             Move = 0,
-            Line,
             Circle,
             Arc,
             Fill,
             Polygon,
-            Curve
+            Curve,
+            Clip  // NEW
         };
 
     public:
@@ -43,6 +43,9 @@ namespace Grafix
         void OnArcToolUpdate();
         void OnCircleToolUpdate();
         void OnCurveUpdate();
+
+        // NEW
+        void OnClipToolUpdate();
 
         void UI_MenuBar();
         void UI_Viewport();

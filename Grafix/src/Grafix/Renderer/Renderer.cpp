@@ -12,6 +12,10 @@
 #include "Algorithms/SeedFillAlgorithm.h"
 #include "Algorithms/CurveAlgorithm.h"
 
+// NEW
+#include "Algorithms/ClipAlgorithm.h"
+
+
 namespace Grafix
 {
     static glm::mat3 s_ViewMatrix = glm::mat3(1.0f);
@@ -47,10 +51,27 @@ namespace Grafix
         m_Image->SetPiexels(m_Pixels);
     }
 
+
     void Renderer::DrawLine(const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, float lineWidth, LineStyleType lineStyle, LineAlgorithmType algorithm)
     {
         DrawLine(TransformComponent(), p0, p1, color, lineWidth, lineStyle);
     }
+
+    // NEW
+    /*void Renderer::DrawLine(const TransformComponent& transform,const glm::vec2& p0,const glm::vec2& p1, const glm::vec3& color, LineStyle style, float dashLength)
+    {
+        ClipAlgorithm::CS_LineClip(p0, p1, m_ClipP0, m_ClipP1,transform,color,style,dashLength, s_ViewMatrix);
+        /*LineAlgorithm::Draw(
+            Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), p0)),
+            Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), p1)),
+            color, style, dashLength
+        );*/
+    }*/
+
+    void Renderer::SetClipRange(const glm::vec2 p0, const glm::vec2 p1)
+    {
+        m_ClipP0 = p0;
+        m_ClipP1 = p1;
 
     void Renderer::DrawLine(const TransformComponent& transform, const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, float lineWidth, LineStyleType lineStyle, LineAlgorithmType algorithm)
     {

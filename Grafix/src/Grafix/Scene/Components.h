@@ -202,4 +202,14 @@ namespace Grafix
             return centerOfGravity;
         }
     };
+
+    struct ClipComponent final
+    {
+        glm::vec2 P0{ 400.0f, 500.0f };
+        glm::vec2 P1{ 500.0f, 500.0f };
+
+        ClipComponent() = default;
+        ClipComponent(const ClipComponent&) = default;
+
+    };
 }
