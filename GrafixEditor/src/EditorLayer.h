@@ -11,12 +11,10 @@ namespace Grafix
         enum class ToolState : uint8_t
         {
             Move = 0,
-            Circle,
-            Arc,
-            Fill,
+            Line, Circle, Arc,
+            Clip, Fill,
             Polygon,
             Curve,
-            Clip  // NEW
         };
 
     public:
@@ -38,7 +36,7 @@ namespace Grafix
 
         void OnMoveToolUpdate();
         void OnBucketToolUpdate();
-        void OnPenToolUpdate();
+        void OnPolygonToolUpdate();
         void OnLineToolUpdate();
         void OnArcToolUpdate();
         void OnCircleToolUpdate();
@@ -76,7 +74,7 @@ namespace Grafix
         glm::vec2* m_SelectedControlPoint = nullptr;
 
         glm::vec3 m_PickedColor{ 0.9f, 0.9f, 0.9f };
-        glm::vec3 m_AuxColor{ 0.5f, 0.5f, 0.5f };
+        glm::vec3 m_AuxColor{ 0.6f, 0.6f, 0.6f };
 
         HierarchyPanel m_HierarchyPanel;
     };

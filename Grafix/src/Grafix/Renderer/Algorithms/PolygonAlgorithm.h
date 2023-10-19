@@ -35,5 +35,7 @@ namespace Grafix
         using ActiveEdgeTable = std::vector<Edge>;
     public:
         static void Scanline(const std::vector<glm::vec2>& vertices, const glm::vec3& color);
+    private:
+        static std::vector<glm::vec2> CalculateClippedVertices(const std::vector<glm::vec2>& vertices);
     };
 }

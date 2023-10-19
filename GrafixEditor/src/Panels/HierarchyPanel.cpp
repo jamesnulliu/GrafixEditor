@@ -108,7 +108,7 @@ namespace Grafix
         else if (m_SelectedEntity.HasComponent<PolygonComponent>())
         {
             auto& polygon = m_SelectedEntity.GetComponent<PolygonComponent>();
-            for (int i = 0; i < polygon.Vertices.size() - 1; ++i)
+            for (int i = 0; i < polygon.Vertices.size(); ++i)
             {
                 ImGui::PushID(i);
                 std::string label = "Vertex " + std::to_string(i + 1);

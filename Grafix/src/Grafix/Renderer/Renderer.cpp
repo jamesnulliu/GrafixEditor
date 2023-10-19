@@ -13,8 +13,7 @@
 #include "Algorithms/CurveAlgorithm.h"
 
 // NEW
-#include "Algorithms/ClipAlgorithm.h"
-
+#include "Algorithms/ClippingAlgorithm.h"
 
 namespace Grafix
 {
@@ -51,7 +50,6 @@ namespace Grafix
         m_Image->SetPiexels(m_Pixels);
     }
 
-
     void Renderer::DrawLine(const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, float lineWidth, LineStyleType lineStyle, LineAlgorithmType algorithm)
     {
         DrawLine(TransformComponent(), p0, p1, color, lineWidth, lineStyle);
@@ -66,12 +64,13 @@ namespace Grafix
             Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), p1)),
             color, style, dashLength
         );*/
-    }*/
+        ////}
 
     void Renderer::SetClipRange(const glm::vec2 p0, const glm::vec2 p1)
     {
         m_ClipP0 = p0;
         m_ClipP1 = p1;
+    }
 
     void Renderer::DrawLine(const TransformComponent& transform, const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, float lineWidth, LineStyleType lineStyle, LineAlgorithmType algorithm)
     {
@@ -148,18 +147,12 @@ namespace Grafix
 
     void Renderer::DrawPolygon(const TransformComponent& transform, const std::vector<glm::vec2>& vertices, const glm::vec3& color)
     {
-        if (vertices.size() == 0 || vertices[0] != vertices[vertices.size() - 1])
-        {
-        }
-        else
-        {
-            std::vector<glm::vec2> transformedVertices(vertices);
+        std::vector<glm::vec2> transformedVertices(vertices);
 
-            for (auto& vertex : transformedVertices)
-                vertex = Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), vertex));
+        for (auto& vertex : transformedVertices)
+            vertex = Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), vertex));
 
-            PolygonAlgorithm::Scanline(transformedVertices, color);
-        }
+        PolygonAlgorithm::Scanline(transformedVertices, color);
     }
 
     void Renderer::DrawCurve(const std::vector<glm::vec2>& controlPoints, const glm::vec3& color, int order, float step,

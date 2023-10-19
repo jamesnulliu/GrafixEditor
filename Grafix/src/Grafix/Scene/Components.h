@@ -138,7 +138,7 @@ namespace Grafix
 
     struct PolygonComponent final
     {
-        // The number of vertices must be at least 4
+        // The number of vertices must be at least 3
         std::vector<glm::vec2> Vertices;
 
         glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
@@ -146,14 +146,16 @@ namespace Grafix
         PolygonComponent() = default;
         PolygonComponent(const PolygonComponent&) = default;
 
+        bool IsClosed = false;
+
         glm::vec2 GetCenterOfGravity() const
         {
             glm::vec2 centerOfGravity{ 0.0f, 0.0f };
 
-            for (int i = 0; i < Vertices.size() - 1; ++i)
-                centerOfGravity += Vertices[i];
+            for (auto vertex : Vertices)
+                centerOfGravity += vertex;
 
-            centerOfGravity /= ((float)Vertices.size() - 1);
+            centerOfGravity /= (float)Vertices.size();
             return centerOfGravity;
         }
     };
@@ -210,6 +212,5 @@ namespace Grafix
 
         ClipComponent() = default;
         ClipComponent(const ClipComponent&) = default;
-
     };
 }
