@@ -23,8 +23,8 @@ namespace Grafix
 
         void SetClearColor(const glm::vec3& color) { m_ClearColor = color; }
 
-        void DrawLine(const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, LineStyle style = LineStyle::Solid, float dashLength = 5.0f);
-        void DrawLine(const TransformComponent& transform, const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, LineStyle style = LineStyle::Solid, float dashLength = 5.0f);
+        void DrawLine(const glm::vec2& p0,const glm::vec2& p1, const glm::vec3& color, LineStyle style = LineStyle::Solid, float dashLength = 5.0f);
+        void DrawLine(const TransformComponent& transform,const glm::vec2& p0,const glm::vec2& p1, const glm::vec3& color, LineStyle style = LineStyle::Solid, float dashLength = 5.0f);
 
         void DrawCircle(const glm::vec2& center, float radius, const glm::vec3& color);
         void DrawCircle(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color);
@@ -39,10 +39,15 @@ namespace Grafix
         void DrawCross(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color, LineStyle lineStyle = LineStyle::Solid, float dashLength = 5.0f);
 
         void Fill(const glm::vec2& seedPoint, const glm::vec3& fillColor);
-        
+
+        void SetClipRange(const glm::vec2 p0, const glm::vec2 p1);
+    private:
+
+    private:
         std::shared_ptr<Image> m_Image = nullptr;
         uint32_t* m_Pixels = nullptr;
-
+        glm::vec2 m_ClipP0 = { 0.0f, 0.0f };
+        glm::vec2 m_ClipP1 = { 1280, 720 };
         glm::vec3 m_ClearColor = { 0.158f, 0.191f, 0.214f };
     };
 }

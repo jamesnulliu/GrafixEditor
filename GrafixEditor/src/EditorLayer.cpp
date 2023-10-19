@@ -104,10 +104,12 @@ namespace Grafix
         {
         case ToolState::Move: { break; }
         case ToolState::Bucket: { OnBucketToolUpdate(); break; }
+        case ToolState::Clip: { OnClipToolUpdate(); break; }
         case ToolState::Line: { OnLineToolUpdate(); break; }
         case ToolState::Arc: { OnArcToolUpdate(); break; }
         case ToolState::Circle: { OnCircleToolUpdate(); break; }
         case ToolState::Pen: { OnPenToolUpdate(); break; }
+
         }
 
         m_EditorScene->OnUpdate();
@@ -437,6 +439,58 @@ namespace Grafix
         }
     }
 
+    void EditorLayer::OnClipToolUpdate()
+    {
+        if (!m_IsDrawing)
+        {
+            if (m_ViewportHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+            {
+                m_IsDrawing = true;
+
+                Entity entity = m_EditorScene->CreateEntity("Clip");
+                m_HierarchyPanel.SetSelectedEntity(entity);
+
+                auto& clip = entity.AddComponent<ClipComponent>();
+
+                clip.P0 = m_MousePosInWorld;
+                clip.P1 = m_MousePosInWorld;
+                m_Renderer.SetClipRange(clip.P0, clip.P1);
+            }
+        }
+        else
+        {
+            Entity entity = m_HierarchyPanel.GetSelectedEntity();
+            auto& clip = entity.GetComponent<ClipComponent>();
+
+            // If ESC is pressed, cancel drawing
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+            {
+                m_IsDrawing = false;
+                m_EditorScene->RemoveEntity(entity);
+                m_HierarchyPanel.SetSelectedEntity({});
+                return;
+            }
+
+            // Press Shift key to draw horizontal/vertical lines
+
+               clip.P1 = m_MousePosInWorld;
+               m_Renderer.SetClipRange(clip.P0, clip.P1);
+
+            if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+            {
+                m_IsDrawing = false;
+
+                // If the line is too short, remove it
+                if (glm::distance(clip.P0, clip.P1) < 0.1f)
+                {
+                    m_EditorScene->RemoveEntity(entity);
+                    m_HierarchyPanel.SetSelectedEntity({});
+                    m_Renderer.SetClipRange(glm::vec2(0.0f,0.0f), glm::vec2(m_CanvasWidth,m_CanvasHeight));
+                }
+            }
+        }
+    }
+
     void EditorLayer::OnPenToolUpdate()
     {
         if (!m_IsDrawing)
@@ -566,6 +620,13 @@ namespace Grafix
                 m_HierarchyPanel.SetSelectedEntity({});
             }
 
+            if (ImGui::Button("Clip", ImVec2{ 80.0f, 30.0f }))
+            {
+                GF_INFO("Switched to Clip tool.");
+                m_ToolState = ToolState::Clip;
+                m_HierarchyPanel.SetSelectedEntity({});
+            }
+
             if (ImGui::Button("Line", ImVec2{ 80.0f, 30.0f }))
             {
                 GF_INFO("Switched to line tool.");
@@ -593,6 +654,7 @@ namespace Grafix
                 m_ToolState = ToolState::Pen;
                 m_HierarchyPanel.SetSelectedEntity({});
             }
+
         }
         ImGui::End();
     }

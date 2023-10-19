@@ -12,6 +12,7 @@ namespace Grafix
         {
             Move = 0,
             Bucket,
+            Clip,
             Line, Arc,
             Circle,
             Pen
@@ -39,6 +40,7 @@ namespace Grafix
         void OnLineToolUpdate();
         void OnArcToolUpdate();
         void OnCircleToolUpdate();
+        void OnClipToolUpdate();
 
         void UI_MenuBar();
         void UI_Viewport();
