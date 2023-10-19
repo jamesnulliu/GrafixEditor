@@ -48,22 +48,27 @@ namespace Grafix
     // ---------------------- Renderer Components ----------------------
     // -----------------------------------------------------------------
 
-    enum class LineStyle
+    enum class LineStyleType : uint8_t
     {
-        Solid, Dashed
+        Solid, Dashed, Dotted
+    };
+
+    enum class LineAlgorithmType : uint8_t
+    {
+        Midpoint, Bresenham
     };
 
     struct LineComponent final
     {
+        LineAlgorithmType Algorithm = LineAlgorithmType::Midpoint;
+
         glm::vec2 P0{ 400.0f, 500.0f };
         glm::vec2 P1{ 500.0f, 500.0f };
 
+        float LineWidth = 5.0f;
+        LineStyleType LineStyle = LineStyleType::Solid;
+
         glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
-
-        float Width = 1.0f;
-        LineStyle Style = LineStyle::Solid;
-
-        float DashLength = 1.0f;
 
         LineComponent() = default;
         LineComponent(const LineComponent&) = default;
@@ -75,6 +80,9 @@ namespace Grafix
     {
         glm::vec2 Center{ 450.0f, 500.0f };
         float Radius = 0.0f;
+
+        float LineWidth = 5.0f;
+        LineStyleType LineStyle = LineStyleType::Solid;
 
         glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
 
@@ -92,6 +100,9 @@ namespace Grafix
         float Angle2 = 60.0f;
         bool Major = false;
 
+        float LineWidth = 5.0f;
+        LineStyleType LineStyle = LineStyleType::Solid;
+
         glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
 
         ArcComponent() = default;
@@ -99,8 +110,29 @@ namespace Grafix
 
         glm::vec2 GetCenterOfGravity() const
         {
-            float midAngle = (Angle1 + Angle2) / 2.0f;
-            glm::vec2 radiusVector = glm::vec2(glm::cos(glm::radians(midAngle)), glm::sin(glm::radians(midAngle)));
+            glm::vec2 Gpoint{ Center };
+            float a1 = glm::mod(Angle1, 360.0f);
+            float a2 = glm::mod(Angle2, 360.0f);
+
+            float beginAngle = glm::min(a1, a2), endAngle = glm::max(a1, a2);
+
+            if ((endAngle - beginAngle) > 180.0f)
+            {
+                std::swap(beginAngle, endAngle);
+                endAngle += 360.0f;
+            }
+
+            float midAngle = (endAngle - beginAngle) / 2.0f;
+            float midAngleRadian = glm::radians(midAngle);
+            float distance = Radius * (glm::sin(midAngleRadian)) / midAngleRadian;
+
+            if (Major)
+                distance = distance - Radius;
+
+            Gpoint.x = Center.x + distance * glm::cos(glm::radians(beginAngle + midAngle));
+            Gpoint.y = Center.y + distance * glm::sin(glm::radians(beginAngle + midAngle));
+
+            return Gpoint;
         }
     };
 
@@ -113,14 +145,62 @@ namespace Grafix
 
         PolygonComponent() = default;
         PolygonComponent(const PolygonComponent&) = default;
+
+        glm::vec2 GetCenterOfGravity() const
+        {
+            glm::vec2 centerOfGravity{ 0.0f, 0.0f };
+
+            for (int i = 0; i < Vertices.size() - 1; ++i)
+                centerOfGravity += Vertices[i];
+
+            centerOfGravity /= ((float)Vertices.size() - 1);
+            return centerOfGravity;
+        }
     };
 
-    struct SeedFillComponent final {
-        glm::vec2 SeedPoint{ 450.0f, 500.0f };   // 种子点坐标
-        glm::vec3 FillColor{ 0.2f, 0.2f, 0.2f };         // 填充颜色
+    struct FillComponent final
+    {
+        glm::vec2 FillPoint{ 450.0f, 500.0f };  // 种子点坐标
+        glm::vec3 FillColor{ 0.2f, 0.2f, 0.2f };  // 填充颜色
 
-        SeedFillComponent() = default;
-        SeedFillComponent(const SeedFillComponent&) = default;
+        FillComponent() = default;
+        FillComponent(const FillComponent&) = default;
+    };
+
+    enum class CurveAlgorithmType : uint8_t
+    {
+        Bezier, NURBS
+    };
+
+    struct CurveComponent final
+    {
+        std::vector<glm::vec2> ControlPoints{};
+        int Order = 3;
+        float Step = 0.001f;
+
+        CurveAlgorithmType Algorithm = CurveAlgorithmType::Bezier;
+
+        float LineWidth = 5.0f;
+        LineStyleType LineStyle = LineStyleType::Solid;
+
+        glm::vec3 Color{ 0.8f, 0.8f, 0.8f };
+
+        std::vector<float> Weights;  // weights.size() = controlPoints.size()
+        std::vector<float> Knots;  // knots.size() = controlPoints.size() + Order
+
+        CurveComponent() = default;
+        CurveComponent(const CurveComponent&) = default;
+
+        glm::vec2 GetCenterOfGravity() const
+        {
+            glm::vec2 centerOfGravity{ 0.0f, 0.0f };
+
+            for (const auto& point : ControlPoints)
+                centerOfGravity += point;
+
+            centerOfGravity /= (float)ControlPoints.size();
+            return centerOfGravity;
+        }
     };
 
     struct ClipComponent final

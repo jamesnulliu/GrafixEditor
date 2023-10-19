@@ -1,5 +1,10 @@
 #include "EditorLayer.h"
 
+#include "Grafix/Renderer/Algorithms/CohenSutherland.h"
+#include "Grafix/Renderer/Algorithms/MidPointClip.h"
+#include "Grafix/Renderer/Algorithms/SutherlandHodgman.h"
+#include "Grafix/Math/Transformation.h"
+
 namespace Grafix
 {
     static uint32_t s_MaxViewportSize = 16384;
@@ -15,23 +20,33 @@ namespace Grafix
             if (entity.HasComponent<LineComponent>())
             {
                 auto& line = entity.GetComponent<LineComponent>();
-                m_Renderer.DrawLine(transform, line.P0, line.P1, line.Color, line.Style, line.DashLength);
-            } else if (entity.HasComponent<CircleComponent>())
+                m_Renderer.DrawLine(transform, line.P0, line.P1, line.Color, line.LineWidth, line.LineStyle, line.Algorithm);
+            }
+            else if (entity.HasComponent<CircleComponent>())
             {
                 auto& circle = entity.GetComponent<CircleComponent>();
-                m_Renderer.DrawCircle(transform, circle.Center, circle.Radius * transform.Scale.x, circle.Color);
-            } else if (entity.HasComponent<ArcComponent>())
+                m_Renderer.DrawCircle(transform, circle.Center, circle.Radius * transform.Scale.x, circle.Color, circle.LineWidth);
+            }
+            else if (entity.HasComponent<ArcComponent>())
             {
                 auto& arc = entity.GetComponent<ArcComponent>();
-                m_Renderer.DrawArc(transform, arc.Center, arc.Radius * transform.Scale.x, arc.Angle1, arc.Angle2, arc.Major, arc.Color);
-            } else if (entity.HasComponent<PolygonComponent>())
+                m_Renderer.DrawArc(transform, arc.Center, arc.Radius * transform.Scale.x, arc.Angle1, arc.Angle2, arc.Major, arc.Color, arc.LineWidth);
+            }
+            else if (entity.HasComponent<PolygonComponent>())
             {
                 auto& polygon = entity.GetComponent<PolygonComponent>();
                 m_Renderer.DrawPolygon(transform, polygon.Vertices, polygon.Color);
             }
-            else if (entity.HasComponent<SeedFillComponent>()) {
-                auto& seed = entity.GetComponent<SeedFillComponent>();
-                m_Renderer.Fill(seed.SeedPoint, seed.FillColor);
+            else if (entity.HasComponent<FillComponent>())  // TEMP
+            {
+                auto& seed = entity.GetComponent<FillComponent>();
+                m_Renderer.Fill(seed.FillPoint, seed.FillColor);
+            }
+            else if (entity.HasComponent<CurveComponent>())
+            {
+                auto& curve = entity.GetComponent<CurveComponent>();
+                m_Renderer.DrawCurve(transform, curve.ControlPoints, curve.Color, curve.Order, curve.Step, curve.Knots,
+                    curve.Weights, curve.LineWidth, curve.LineStyle, curve.Algorithm);
             }
         }
 
@@ -43,23 +58,34 @@ namespace Grafix
             if (entity.HasComponent<CircleComponent>())
             {
                 auto& circle = entity.GetComponent<CircleComponent>();
-                m_Renderer.DrawCross(transform, circle.Center, 5.0f, m_AuxColor, LineStyle::Solid);
-            } else if (entity.HasComponent<ArcComponent>())
+                m_Renderer.DrawCross(transform, circle.Center, 5.0f, m_AuxColor);
+            }
+            else if (entity.HasComponent<ArcComponent>())
             {
                 auto& arc = entity.GetComponent<ArcComponent>();
-                m_Renderer.DrawCross(transform, arc.Center, 5.0f, m_AuxColor, LineStyle::Solid);
+                m_Renderer.DrawCross(transform, arc.Center, 5.0f, m_AuxColor);
 
                 glm::vec2 delta1 = arc.Radius *
                     glm::vec2{ glm::cos(glm::radians(arc.Angle1)), glm::sin(glm::radians(arc.Angle1)) };
-                m_Renderer.DrawLine(transform, arc.Center, arc.Center + delta1, m_AuxColor, LineStyle::Dashed, 20.0f);
+                m_Renderer.DrawLine(transform, arc.Center, arc.Center + delta1, m_AuxColor, 1.0f, LineStyleType::Dashed);
 
                 glm::vec2 delta2 = arc.Radius *
                     glm::vec2{ glm::cos(glm::radians(arc.Angle2)), glm::sin(glm::radians(arc.Angle2)) };
-                m_Renderer.DrawLine(transform, arc.Center, arc.Center + delta2, m_AuxColor, LineStyle::Dashed, 20.0f);
-            } else if (entity.HasComponent<PolygonComponent>())
+                m_Renderer.DrawLine(transform, arc.Center, arc.Center + delta2, m_AuxColor, 1.0f, LineStyleType::Dashed);
+            }
+            else if (entity.HasComponent<PolygonComponent>())
             {
-                auto& polygon = entity.GetComponent<PolygonComponent>();
-                m_Renderer.DrawPolygon(transform, polygon.Vertices, polygon.Color);
+                if (m_IsDrawing)
+                {
+                    auto& polygon = entity.GetComponent<PolygonComponent>();
+                    for (int i = 0; i < polygon.Vertices.size() - 1; i++)
+                        m_Renderer.DrawLine(transform, polygon.Vertices[i], polygon.Vertices[i + 1], m_AuxColor, 1.0f, LineStyleType::Solid);
+                }
+            }
+            else if (entity.HasComponent<CurveComponent>())
+            {
+                for (const auto& point : entity.GetComponent<CurveComponent>().ControlPoints)
+                    m_Renderer.DrawSquare(point, m_ControlPointSize, m_AuxColor);
             }
         }
     }
@@ -68,48 +94,24 @@ namespace Grafix
     {
         m_EditorScene = std::make_shared<Scene>();
         m_HierarchyPanel.BindScene(m_EditorScene);
-
-        ////// Game
-        ////auto entity = m_EditorScene->CreateEntity("Bird");
-        ////auto& transform = entity.GetComponent<TransformComponent>();
-        ////transform.Translation = { 420.0f, 360.0f };
-        ////auto& triangle = entity.AddComponent<PolygonComponent>();
-        ////triangle.Vertices = { { -20.0f, 30.0f }, { -20.0f, -30.0f }, { 40.0f, 0.0f }, { -20.0f, 30.0f } };
-        ////triangle.Color = glm::vec3(1.0f, 0.824f, 0.0f);
     }
 
     void EditorLayer::OnUpdate()
     {
-        ////// Game
-        ////auto entity = m_EditorScene->GetEntity("Bird");
-        ////auto& transform = entity.GetComponent<TransformComponent>();
-        ////transform.Translation.x += 0.4f;
-
-        ////if (Input::IsKeyPressed(Key::Space))
-        ////{
-        ////    transform.Translation.y += 1.0f;
-        ////    transform.Rotation = std::max(transform.Rotation + 0.0004f, 30.0f);
-        ////} else
-        ////{
-        ////    transform.Translation.y -= 1.0f;
-        ////    transform.Rotation = std::min(transform.Rotation - 0.0004f, -30.0f);
-        ////}
-
-        UpdateMousePosInCanvas();
+        UpdateMousePos();
 
         ////m_Camera.SetPosition(glm::vec2{ transform.Translation.x - 320.f, 0.0f });
         ////m_Camera.OnUpdate();
 
         switch (m_ToolState)
         {
-        case ToolState::Move: { break; }
-        case ToolState::Bucket: { OnBucketToolUpdate(); break; }
-        case ToolState::Clip: { OnClipToolUpdate(); break; }
+        case ToolState::Move: { OnMoveToolUpdate(); break; }
+        case ToolState::Fill: { OnBucketToolUpdate(); break; }
         case ToolState::Line: { OnLineToolUpdate(); break; }
         case ToolState::Arc: { OnArcToolUpdate(); break; }
         case ToolState::Circle: { OnCircleToolUpdate(); break; }
-        case ToolState::Pen: { OnPenToolUpdate(); break; }
-
+        case ToolState::Polygon: { OnPenToolUpdate(); break; }
+        case ToolState::Curve: { OnCurveUpdate(); break; }
         }
 
         m_EditorScene->OnUpdate();
@@ -167,17 +169,17 @@ namespace Grafix
             UI_Info();
 
             m_HierarchyPanel.OnUIRender();
+
+            // Update
+
+            m_Renderer.OnResize(m_CanvasWidth, m_CanvasHeight);
+            m_Camera.SetViewportSize((float)m_CanvasWidth, (float)m_CanvasHeight);
+
+            m_Renderer.BeginScene(m_Camera);
+            Render();
+            m_Renderer.EndScene();
         }
         ImGui::End(); // DockSpace
-
-        // Update
-
-        m_Renderer.OnResize(m_CanvasWidth, m_CanvasHeight);
-        m_Camera.SetViewportSize((float)m_CanvasWidth, (float)m_CanvasHeight);
-
-        m_Renderer.BeginScene(m_Camera);
-        Render();
-        m_Renderer.EndScene();
     }
 
     void EditorLayer::OnEvent(Event& e)
@@ -219,14 +221,20 @@ namespace Grafix
         return false;
     }
 
-    void EditorLayer::UpdateMousePosInCanvas()
+    void EditorLayer::UpdateMousePos()
     {
         auto [mx, my] = ImGui::GetMousePos();
 
-        m_MousePosInCanvas = {
+        glm::vec2 newMousePosInCanvas = {
             mx - m_CanvasBounds[0].x,
             m_CanvasBounds[1].y - my
         };
+
+        m_MousePositionDelta = newMousePosInCanvas - m_MousePosInCanvas;
+        m_MousePosInCanvas = newMousePosInCanvas;
+
+        glm::mat3 translationMatrix = m_Camera.GetTranslationMatrix();
+        m_MousePosInWorld = Math::Transform(translationMatrix, m_MousePosInCanvas);
     }
 
     bool EditorLayer::IsMouseInViewport() const
@@ -256,7 +264,8 @@ namespace Grafix
                 line.P1 = m_MousePosInWorld;
                 line.Color = m_PickedColor;
             }
-        } else
+        }
+        else
         {
             Entity entity = m_HierarchyPanel.GetSelectedEntity();
             auto& line = entity.GetComponent<LineComponent>();
@@ -277,7 +286,8 @@ namespace Grafix
                     line.P1 = { line.P0.x, m_MousePosInWorld.y };
                 else
                     line.P1 = { m_MousePosInWorld.x, line.P0.y };
-            } else
+            }
+            else
             {
                 line.P1 = m_MousePosInWorld;
             }
@@ -314,7 +324,8 @@ namespace Grafix
                 arc.Radius = 0.0f;
                 arc.Color = m_PickedColor;
             }
-        } else
+        }
+        else
         {
             Entity entity = m_HierarchyPanel.GetSelectedEntity();
             auto& arc = entity.GetComponent<ArcComponent>();
@@ -352,7 +363,8 @@ namespace Grafix
                         m_IsDrawing = false;
                         m_EditorScene->RemoveEntity(entity);
                         m_HierarchyPanel.SetSelectedEntity({});
-                    } else
+                    }
+                    else
                     {
                         ++m_OperationState;
                     }
@@ -397,7 +409,8 @@ namespace Grafix
                 circle.Center = m_MousePosInWorld;
                 circle.Color = m_PickedColor;
             }
-        } else
+        }
+        else
         {
             Entity entity = m_HierarchyPanel.GetSelectedEntity();
             auto& circle = entity.GetComponent<CircleComponent>();
@@ -421,9 +434,38 @@ namespace Grafix
                 // If the radius is too small, remove the circle
                 if (circle.Radius < 0.1f)
                 {
+                    m_EditorScene->RemoveEntity(entity);
+                    m_HierarchyPanel.SetSelectedEntity({});
                 }
             }
         }
+    }
+
+    void EditorLayer::OnMoveToolUpdate()
+    {
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+        {
+            if (auto selectedEntity = m_HierarchyPanel.GetSelectedEntity())
+            {
+                // Curve
+                if (selectedEntity.HasComponent<CurveComponent>())
+                {
+                    auto& curve = selectedEntity.GetComponent<CurveComponent>();
+                    for (auto& controlPoint : curve.ControlPoints)
+                    {
+                        if (glm::distance(m_MousePosInWorld, controlPoint) <= m_ControlPointSize / 2.0f)
+                        {
+                            m_SelectedControlPoint = &controlPoint;
+                            return;
+                        }
+                    }
+                }
+            }
+            m_SelectedControlPoint = nullptr;
+        }
+
+        if (m_SelectedControlPoint && ImGui::IsMouseDown(ImGuiMouseButton_Left))
+            *m_SelectedControlPoint += m_MousePositionDelta;
     }
 
     void EditorLayer::OnBucketToolUpdate()
@@ -433,8 +475,8 @@ namespace Grafix
             Entity entity = m_EditorScene->CreateEntity("Fill");
             m_HierarchyPanel.SetSelectedEntity(entity);
 
-            auto& bucket = entity.AddComponent<SeedFillComponent>();
-            bucket.SeedPoint = m_MousePosInCanvas;
+            auto& bucket = entity.AddComponent<FillComponent>();
+            bucket.FillPoint = m_MousePosInCanvas;
             bucket.FillColor = m_PickedColor;
         }
     }
@@ -507,7 +549,8 @@ namespace Grafix
                 polygon.Vertices.push_back(m_MousePosInWorld);
                 polygon.Color = m_PickedColor;
             }
-        } else
+        }
+        else
         {
             Entity entity = m_HierarchyPanel.GetSelectedEntity();
             auto& polygon = entity.GetComponent<PolygonComponent>();
@@ -528,10 +571,55 @@ namespace Grafix
             {
                 m_IsDrawing = false;
 
-                if (polygon.Vertices.size() > 2)
+                if (polygon.Vertices.size() <= 2)
                 {
-                    polygon.Vertices.push_back(polygon.Vertices[0]);
-                } else
+                    m_EditorScene->RemoveEntity(entity);
+                    m_HierarchyPanel.SetSelectedEntity({});
+                }
+                else polygon.Vertices.push_back(polygon.Vertices[0]);
+            }
+        }
+    }
+
+    void EditorLayer::OnCurveUpdate()
+    {
+        if (!m_IsDrawing)
+        {
+            if (m_ViewportHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+            {
+                m_IsDrawing = true;
+
+                Entity entity = m_EditorScene->CreateEntity("Curve");
+                m_HierarchyPanel.SetSelectedEntity(entity);
+
+                auto& curve = entity.AddComponent<CurveComponent>();
+
+                curve.ControlPoints.push_back(m_MousePosInWorld);
+                curve.Color = m_PickedColor;
+            }
+        }
+        else
+        {
+            Entity entity = m_HierarchyPanel.GetSelectedEntity();
+            auto& curve = entity.GetComponent<CurveComponent>();
+
+            // If ESC is pressed, cancel drawing
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+            {
+                m_IsDrawing = false;
+                m_EditorScene->RemoveEntity(entity);
+                m_HierarchyPanel.SetSelectedEntity({});
+                return;
+            }
+
+            if (m_ViewportHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                curve.ControlPoints.push_back(m_MousePosInWorld);
+
+            if (ImGui::IsKeyPressed(ImGuiKey_Enter))
+            {
+                m_IsDrawing = false;
+
+                if (curve.ControlPoints.size() <= 1)
                 {
                     m_EditorScene->RemoveEntity(entity);
                     m_HierarchyPanel.SetSelectedEntity({});
@@ -586,7 +674,8 @@ namespace Grafix
             if (m_CanvasWidth == 0 || m_CanvasWidth > s_MaxViewportSize || m_CanvasHeight == 0 || m_CanvasHeight > s_MaxViewportSize)
             {
                 GF_WARN("Attempt to resize viewport to ({0}, {1})", m_CanvasWidth, m_CanvasHeight);
-            } else
+            }
+            else
             {
                 auto image = m_Renderer.GetImage();
                 if (image)
@@ -613,20 +702,6 @@ namespace Grafix
                 m_HierarchyPanel.SetSelectedEntity({});
             }
 
-            if (ImGui::Button("Bucket", ImVec2{ 80.0f, 30.0f }))
-            {
-                GF_INFO("Switched to Bucket tool.");
-                m_ToolState = ToolState::Bucket;
-                m_HierarchyPanel.SetSelectedEntity({});
-            }
-
-            if (ImGui::Button("Clip", ImVec2{ 80.0f, 30.0f }))
-            {
-                GF_INFO("Switched to Clip tool.");
-                m_ToolState = ToolState::Clip;
-                m_HierarchyPanel.SetSelectedEntity({});
-            }
-
             if (ImGui::Button("Line", ImVec2{ 80.0f, 30.0f }))
             {
                 GF_INFO("Switched to line tool.");
@@ -634,10 +709,11 @@ namespace Grafix
                 m_HierarchyPanel.SetSelectedEntity({});
             }
 
-            if (ImGui::Button("Arc", ImVec2{ 80.0f, 30.0f }))
+            // NEW
+            if (ImGui::Button("Clip", ImVec2{ 80.0f, 30.0f }))
             {
-                GF_INFO("Switched to arc tool.");
-                m_ToolState = ToolState::Arc;
+                GF_INFO("Switched to Clip tool.");
+                m_ToolState = ToolState::Clip;
                 m_HierarchyPanel.SetSelectedEntity({});
             }
 
@@ -648,13 +724,33 @@ namespace Grafix
                 m_HierarchyPanel.SetSelectedEntity({});
             }
 
-            if (ImGui::Button("Pen", ImVec2{ 80.0f, 30.0f }))
+            if (ImGui::Button("Arc", ImVec2{ 80.0f, 30.0f }))
             {
-                GF_INFO("Switched to pen tool.");
-                m_ToolState = ToolState::Pen;
+                GF_INFO("Switched to arc tool.");
+                m_ToolState = ToolState::Arc;
                 m_HierarchyPanel.SetSelectedEntity({});
             }
 
+            if (ImGui::Button("Fill", ImVec2{ 80.0f, 30.0f }))
+            {
+                GF_INFO("Switched to Fill tool.");
+                m_ToolState = ToolState::Fill;
+                m_HierarchyPanel.SetSelectedEntity({});
+            }
+
+            if (ImGui::Button("Polygon", ImVec2{ 80.0f, 30.0f }))
+            {
+                GF_INFO("Switched to polygon tool.");
+                m_ToolState = ToolState::Polygon;
+                m_HierarchyPanel.SetSelectedEntity({});
+            }
+
+            if (ImGui::Button("Curve", ImVec2{ 80.0f, 30.0f }))
+            {
+                GF_INFO("Switched to curve tool.");
+                m_ToolState = ToolState::Curve;
+                m_HierarchyPanel.SetSelectedEntity({});
+            }
         }
         ImGui::End();
     }
@@ -670,10 +766,9 @@ namespace Grafix
 
             if (IsMouseInViewport())
             {
-                glm::mat3 translationMatrix = m_Camera.GetTranslationMatrix();
-                m_MousePosInWorld = Math::Transform(translationMatrix, m_MousePosInCanvas);
                 ImGui::Text("Mouse Position In World: (%d, %d)", (int)m_MousePosInWorld.x, (int)m_MousePosInWorld.y);
                 ImGui::Text("Mouse Position In Canvas: (%d, %d)", (int)m_MousePosInCanvas.x, (int)m_MousePosInCanvas.y);
+                ImGui::Text("Mouse Position Delta: (%d, %d)", (int)m_MousePositionDelta.x, (int)m_MousePositionDelta.y);
             }
         }
         ImGui::End();
@@ -692,23 +787,33 @@ namespace Grafix
                     auto& line = selectedEntity.GetComponent<LineComponent>();
                     m_PickedColor = line.Color;
                     ImGui::ColorPicker3("Color", glm::value_ptr(line.Color));
-                } else if (selectedEntity.HasComponent<ArcComponent>())
+                }
+                else if (selectedEntity.HasComponent<ArcComponent>())
                 {
                     auto& arc = selectedEntity.GetComponent<ArcComponent>();
                     m_PickedColor = arc.Color;
                     ImGui::ColorPicker3("Color", glm::value_ptr(arc.Color));
-                } else if (selectedEntity.HasComponent<CircleComponent>())
+                }
+                else if (selectedEntity.HasComponent<CircleComponent>())
                 {
                     auto& circle = selectedEntity.GetComponent<CircleComponent>();
                     m_PickedColor = circle.Color;
                     ImGui::ColorPicker3("Color", glm::value_ptr(circle.Color));
-                } else if (selectedEntity.HasComponent<PolygonComponent>())
+                }
+                else if (selectedEntity.HasComponent<PolygonComponent>())
                 {
                     auto& polygon = selectedEntity.GetComponent<PolygonComponent>();
                     m_PickedColor = polygon.Color;
                     ImGui::ColorPicker3("Color", glm::value_ptr(polygon.Color));
                 }
-            } else
+                else if (selectedEntity.HasComponent<CurveComponent>())
+                {
+                    auto& curve = selectedEntity.GetComponent<CurveComponent>();
+                    m_PickedColor = curve.Color;
+                    ImGui::ColorPicker3("Color", glm::value_ptr(curve.Color));
+                }
+            }
+            else
             {
                 ImGui::ColorPicker3("Color", glm::value_ptr(m_PickedColor));
             }
@@ -727,17 +832,26 @@ namespace Grafix
         {
             auto& line = selectedEntity.GetComponent<LineComponent>();
             transform.Pivot = line.GetCenterOfGravity();
-        } else if (selectedEntity.HasComponent<CircleComponent>())
+        }
+        else if (selectedEntity.HasComponent<CircleComponent>())
         {
             auto& circle = selectedEntity.GetComponent<CircleComponent>();
             transform.Pivot = circle.GetCenterOfGravity();
-        } else if (selectedEntity.HasComponent<PolygonComponent>())
+        }
+        else if (selectedEntity.HasComponent<ArcComponent>())
+        {
+            auto& arc = selectedEntity.GetComponent<ArcComponent>();
+            transform.Pivot = arc.GetCenterOfGravity();
+        }
+        else if (selectedEntity.HasComponent<PolygonComponent>())
         {
             auto& polygon = selectedEntity.GetComponent<PolygonComponent>();
-            glm::vec2 referencePoint = glm::vec2{ 0.0f, 0.0f };
-            for (auto& vertex : polygon.Vertices)
-                referencePoint += vertex;
-            transform.Pivot = referencePoint / (float)polygon.Vertices.size();
+            transform.Pivot = polygon.GetCenterOfGravity();
+        }
+        else if (selectedEntity.HasComponent<CurveComponent>())
+        {
+            auto& curve = selectedEntity.GetComponent<CurveComponent>();
+            transform.Pivot = curve.GetCenterOfGravity();
         }
     }
 }

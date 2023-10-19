@@ -6,16 +6,13 @@
 
 namespace Grafix
 {
-    void ArcAlgorithm::Draw(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color)
+    void ArcAlgorithm::Midpoint(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color)
     {
         if (glm::abs(angle2 - angle1) < 1e-9f)
             return;
 
-        Midpoint(center, radius, angle1, angle2, major, color);
-    }
+        uint32_t colorValue = RGBToUint32(color);
 
-    void ArcAlgorithm::Midpoint(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color)
-    {
         // Restrict angles to 0 <= angle < 360
         angle1 = glm::mod(angle1, 360.0f);
         angle2 = glm::mod(angle2, 360.0f);
@@ -32,12 +29,13 @@ namespace Grafix
 
         while (a <= b)
         {
-            SetArcPixels((int)center.x, (int)center.y, a, b, radius, beginAngle, endAngle, color);
+            SetArcPixels((int)center.x, (int)center.y, a, b, radius, beginAngle, endAngle, colorValue);
 
             if (e < 0)
             {
                 e += 2 * a + 3;
-            } else
+            }
+            else
             {
                 e += 2 * (a - b) + 5;
                 b--;
@@ -46,27 +44,27 @@ namespace Grafix
         }
     }
 
-    void ArcAlgorithm::SetArcPixels(int centerX, int centerY, int x, int y, float radius, float beginAngle, float endAngle, const glm::vec3& color)
+    void ArcAlgorithm::SetArcPixels(int centerX, int centerY, int x, int y, float radius, float beginAngle, float endAngle, uint32_t colorValue)
     {
         if (IsInRange(x, y, beginAngle, endAngle))
-            SetPixel(centerX + x, centerY + y, color);
+            SetPixel(centerX + x, centerY + y, colorValue);
         if (IsInRange(y, x, beginAngle, endAngle))
-            SetPixel(centerX + y, centerY + x, color);
+            SetPixel(centerX + y, centerY + x, colorValue);
 
         if (IsInRange(-x, y, beginAngle, endAngle))
-            SetPixel(centerX - x, centerY + y, color);
+            SetPixel(centerX - x, centerY + y, colorValue);
         if (IsInRange(-y, x, beginAngle, endAngle))
-            SetPixel(centerX - y, centerY + x, color);
+            SetPixel(centerX - y, centerY + x, colorValue);
 
         if (IsInRange(-x, -y, beginAngle, endAngle))
-            SetPixel(centerX - x, centerY - y, color);
+            SetPixel(centerX - x, centerY - y, colorValue);
         if (IsInRange(-y, -x, beginAngle, endAngle))
-            SetPixel(centerX - y, centerY - x, color);
+            SetPixel(centerX - y, centerY - x, colorValue);
 
         if (IsInRange(x, -y, beginAngle, endAngle))
-            SetPixel(centerX + x, centerY - y, color);
+            SetPixel(centerX + x, centerY - y, colorValue);
         if (IsInRange(y, -x, beginAngle, endAngle))
-            SetPixel(centerX + y, centerY - x, color);
+            SetPixel(centerX + y, centerY - x, colorValue);
     }
 
     bool ArcAlgorithm::IsInRange(int x, int y, float beginAngle, float endAngle)

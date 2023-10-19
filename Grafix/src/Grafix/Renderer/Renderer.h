@@ -23,26 +23,38 @@ namespace Grafix
 
         void SetClearColor(const glm::vec3& color) { m_ClearColor = color; }
 
-        void DrawLine(const glm::vec2& p0,const glm::vec2& p1, const glm::vec3& color, LineStyle style = LineStyle::Solid, float dashLength = 5.0f);
-        void DrawLine(const TransformComponent& transform,const glm::vec2& p0,const glm::vec2& p1, const glm::vec3& color, LineStyle style = LineStyle::Solid, float dashLength = 5.0f);
+        void DrawLine(const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, float lineWidth = 1.0f,
+            LineStyleType lineStyle = LineStyleType::Solid, LineAlgorithmType algorithm = LineAlgorithmType::Bresenham);
+        void DrawLine(const TransformComponent& transform, const glm::vec2& p0, const glm::vec2& p1,
+            const glm::vec3& color, float lineWidth = 1.0f, LineStyleType lineStyle = LineStyleType::Solid, LineAlgorithmType algorithm = LineAlgorithmType::Bresenham);
 
-        void DrawCircle(const glm::vec2& center, float radius, const glm::vec3& color);
-        void DrawCircle(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color);
+        void DrawCircle(const glm::vec2& center, float radius, const glm::vec3& color, float lineWidth = 1.0f, LineStyleType style = LineStyleType::Solid);
+        void DrawCircle(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color, float lineWidth = 1.0f, LineStyleType style = LineStyleType::Solid);
 
-        void DrawArc(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color);
-        void DrawArc(const TransformComponent& transform, const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color);
+        void DrawArc(const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color, float lineWidth = 1.0f, LineStyleType style = LineStyleType::Solid);
+        void DrawArc(const TransformComponent& transform, const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color, float lineWidth = 1.0f, LineStyleType style = LineStyleType::Solid);
 
         void DrawPolygon(const std::vector<glm::vec2>& vertices, const glm::vec3& color);
         void DrawPolygon(const TransformComponent& transform, const std::vector<glm::vec2>& vertices, const glm::vec3& color);
 
-        void DrawCross(const glm::vec2& center, float radius, const glm::vec3& color, LineStyle lineStyle = LineStyle::Solid, float dashLength = 5.0f);
-        void DrawCross(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color, LineStyle lineStyle = LineStyle::Solid, float dashLength = 5.0f);
+        void DrawCurve(const std::vector<glm::vec2>& controlPoints, const glm::vec3& color,
+            int order, float step, std::vector<float>& knots, std::vector<float>& weights,
+            float lineWidth = 1.0f, LineStyleType lineStyle = LineStyleType::Solid, CurveAlgorithmType algorithm = CurveAlgorithmType::Bezier);
+        void DrawCurve(const TransformComponent& transform, const std::vector<glm::vec2>& controlPoints, const glm::vec3& color,
+            int order, float step, std::vector<float>& knots, std::vector<float>& weights,
+            float lineWidth = 1.0f, LineStyleType lineStyle = LineStyleType::Solid, CurveAlgorithmType algorithm = CurveAlgorithmType::Bezier);
+
+        // *************************** Not Reliant On Camera *************************** //
+
+        void DrawCross(const glm::vec2& center, float radius, const glm::vec3& color);
+        void DrawCross(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color);
+
+        void DrawSquare(const glm::vec2& center, float length, const glm::vec3& color);
 
         void Fill(const glm::vec2& seedPoint, const glm::vec3& fillColor);
 
+        // NEW
         void SetClipRange(const glm::vec2 p0, const glm::vec2 p1);
-    private:
-
     private:
         std::shared_ptr<Image> m_Image = nullptr;
         uint32_t* m_Pixels = nullptr;
