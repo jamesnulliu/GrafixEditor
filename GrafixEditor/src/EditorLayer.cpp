@@ -46,7 +46,7 @@ namespace Grafix
             {
                 auto& curve = entity.GetComponent<CurveComponent>();
                 m_Renderer.DrawCurve(transform, curve.ControlPoints, curve.Color, curve.Order, curve.Step, curve.Knots,
-                    curve.Weights, curve.LineWidth, curve.Algorithm);
+                    curve.Weights, curve.LineWidth, curve.LineStyle, curve.Algorithm);
             }
         }
 
@@ -106,11 +106,11 @@ namespace Grafix
         switch (m_ToolState)
         {
         case ToolState::Move: { OnMoveToolUpdate(); break; }
-        case ToolState::Bucket: { OnBucketToolUpdate(); break; }
+        case ToolState::Fill: { OnBucketToolUpdate(); break; }
         case ToolState::Line: { OnLineToolUpdate(); break; }
         case ToolState::Arc: { OnArcToolUpdate(); break; }
         case ToolState::Circle: { OnCircleToolUpdate(); break; }
-        case ToolState::Pen: { OnPenToolUpdate(); break; }
+        case ToolState::Polygon: { OnPenToolUpdate(); break; }
         case ToolState::Curve: { OnCurveUpdate(); break; }
         }
 
@@ -650,24 +650,10 @@ namespace Grafix
                 m_HierarchyPanel.SetSelectedEntity({});
             }
 
-            if (ImGui::Button("Bucket", ImVec2{ 80.0f, 30.0f }))
-            {
-                GF_INFO("Switched to Bucket tool.");
-                m_ToolState = ToolState::Bucket;
-                m_HierarchyPanel.SetSelectedEntity({});
-            }
-
             if (ImGui::Button("Line", ImVec2{ 80.0f, 30.0f }))
             {
                 GF_INFO("Switched to line tool.");
                 m_ToolState = ToolState::Line;
-                m_HierarchyPanel.SetSelectedEntity({});
-            }
-
-            if (ImGui::Button("Arc", ImVec2{ 80.0f, 30.0f }))
-            {
-                GF_INFO("Switched to arc tool.");
-                m_ToolState = ToolState::Arc;
                 m_HierarchyPanel.SetSelectedEntity({});
             }
 
@@ -678,10 +664,24 @@ namespace Grafix
                 m_HierarchyPanel.SetSelectedEntity({});
             }
 
-            if (ImGui::Button("Pen", ImVec2{ 80.0f, 30.0f }))
+            if (ImGui::Button("Arc", ImVec2{ 80.0f, 30.0f }))
             {
-                GF_INFO("Switched to pen tool.");
-                m_ToolState = ToolState::Pen;
+                GF_INFO("Switched to arc tool.");
+                m_ToolState = ToolState::Arc;
+                m_HierarchyPanel.SetSelectedEntity({});
+            }
+
+            if (ImGui::Button("Fill", ImVec2{ 80.0f, 30.0f }))
+            {
+                GF_INFO("Switched to Fill tool.");
+                m_ToolState = ToolState::Fill;
+                m_HierarchyPanel.SetSelectedEntity({});
+            }
+
+            if (ImGui::Button("Polygon", ImVec2{ 80.0f, 30.0f }))
+            {
+                GF_INFO("Switched to polygon tool.");
+                m_ToolState = ToolState::Polygon;
                 m_HierarchyPanel.SetSelectedEntity({});
             }
 
@@ -786,10 +786,12 @@ namespace Grafix
         else if (selectedEntity.HasComponent<PolygonComponent>())
         {
             auto& polygon = selectedEntity.GetComponent<PolygonComponent>();
-            glm::vec2 referencePoint = glm::vec2{ 0.0f, 0.0f };
-            for (auto& vertex : polygon.Vertices)
-                referencePoint += vertex;
-            transform.Pivot = referencePoint / (float)polygon.Vertices.size();
+            transform.Pivot = polygon.GetCenterOfGravity();
+        }
+        else if (selectedEntity.HasComponent<CurveComponent>())
+        {
+            auto& curve = selectedEntity.GetComponent<CurveComponent>();
+            transform.Pivot = curve.GetCenterOfGravity();
         }
     }
 }

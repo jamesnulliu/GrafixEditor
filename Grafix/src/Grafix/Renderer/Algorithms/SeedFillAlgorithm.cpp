@@ -12,7 +12,7 @@ namespace Grafix
         std::queue<glm::vec2> pixelQueue;
         // 将种子点入队并填充它
         pixelQueue.push(seedPoint);
-        SetPixel((int)seedPoint.x, (int)seedPoint.y, fillColor, 1);
+        SetSinglePixel((int)seedPoint.x, (int)seedPoint.y, fillColor);
 
         // 定义四个方向的偏移量
         int dx[] = { 1, 0, -1, 0 };
@@ -34,7 +34,7 @@ namespace Grafix
                 {
                     // 将相邻的边界像素入队并进行填充
                     pixelQueue.push(glm::vec2(newX, newY));
-                    SetPixel(newX, newY, fillColor, 1);
+                    SetSinglePixel(newX, newY, fillColor);
                 }
             }
         }

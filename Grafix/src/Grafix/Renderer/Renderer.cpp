@@ -47,13 +47,15 @@ namespace Grafix
         m_Image->SetPiexels(m_Pixels);
     }
 
-    void Renderer::DrawLine(const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, float lineWidth, LineStyleType style, LineAlgorithmType algorithm)
+    void Renderer::DrawLine(const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, float lineWidth, LineStyleType lineStyle, LineAlgorithmType algorithm)
     {
-        DrawLine(TransformComponent(), p0, p1, color, lineWidth, style);
+        DrawLine(TransformComponent(), p0, p1, color, lineWidth, lineStyle);
     }
 
-    void Renderer::DrawLine(const TransformComponent& transform, const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, float lineWidth, LineStyleType style, LineAlgorithmType algorithm)
+    void Renderer::DrawLine(const TransformComponent& transform, const glm::vec2& p0, const glm::vec2& p1, const glm::vec3& color, float lineWidth, LineStyleType lineStyle, LineAlgorithmType algorithm)
     {
+        GraphicsAlgorithm::SetLineProperties(lineWidth, lineStyle);
+
         switch (algorithm)
         {
         case LineAlgorithmType::Midpoint:
@@ -61,8 +63,7 @@ namespace Grafix
             LineAlgorithm::Midpoint(
                 Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), p0)),
                 Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), p1)),
-                color, lineWidth, style
-            );
+                color);
             break;
         }
         case LineAlgorithmType::Bresenham:
@@ -70,8 +71,7 @@ namespace Grafix
             LineAlgorithm::Bresenham(
                 Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), p0)),
                 Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), p1)),
-                color, lineWidth, style
-            );
+                color);
             break;
         }
         }
@@ -84,9 +84,11 @@ namespace Grafix
 
     void Renderer::DrawCircle(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color, float lineWidth, LineStyleType lineStyle)
     {
+        GraphicsAlgorithm::SetLineProperties(lineWidth, lineStyle);
+
         CircleAlgorithm::Midpoint(
             Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), center)),
-            radius, color, lineWidth, lineStyle
+            radius, color
         );
     }
 
@@ -97,6 +99,8 @@ namespace Grafix
 
     void Renderer::DrawArc(const TransformComponent& transform, const glm::vec2& center, float radius, float angle1, float angle2, bool major, const glm::vec3& color, float lineWidth, LineStyleType lineStyle)
     {
+        GraphicsAlgorithm::SetLineProperties(lineWidth, lineStyle);
+
         glm::vec2 angle{ 0,0 };
         auto newCenter = Math::Transform(transform.GetTransformMatrix(), center);
 
@@ -113,7 +117,7 @@ namespace Grafix
         angle[1] = glm::atan(delta2.y, delta2.x);
         angle = glm::degrees(angle);
 
-        ArcAlgorithm::Midpoint(newCenter, radius, angle[0], angle[1], major, color, lineWidth);
+        ArcAlgorithm::Midpoint(newCenter, radius, angle[0], angle[1], major, color);
     }
 
     void Renderer::DrawPolygon(const std::vector<glm::vec2>& vertices, const glm::vec3& color)
@@ -138,15 +142,17 @@ namespace Grafix
     }
 
     void Renderer::DrawCurve(const std::vector<glm::vec2>& controlPoints, const glm::vec3& color, int order, float step,
-        std::vector<float>& knots, std::vector<float>& weights, float lineWidth, CurveAlgorithmType algorithm)
+        std::vector<float>& knots, std::vector<float>& weights, float lineWidth, LineStyleType lineStyle, CurveAlgorithmType algorithm)
     {
-        DrawCurve(TransformComponent(), controlPoints, color, order, step, knots, weights, lineWidth, algorithm);
+        DrawCurve(TransformComponent(), controlPoints, color, order, step, knots, weights, lineWidth, lineStyle, algorithm);
     }
 
     void Renderer::DrawCurve(const TransformComponent& transform, const std::vector<glm::vec2>& controlPoints,
         const glm::vec3& color, int order, float step, std::vector<float>& knots,
-        std::vector<float>& weights, float lineWidth, CurveAlgorithmType algorithm)
+        std::vector<float>& weights, float lineWidth, LineStyleType lineStyle, CurveAlgorithmType algorithm)
     {
+        GraphicsAlgorithm::SetLineProperties(lineWidth, lineStyle);
+
         std::vector<glm::vec2> transformedControlPoints(controlPoints);
         for (auto& controlPoint : transformedControlPoints)
             controlPoint = Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), controlPoint));
@@ -155,13 +161,13 @@ namespace Grafix
         {
         case CurveAlgorithmType::Bezier:
         {
-            CurveAlgorithm::Bezier(transformedControlPoints, step, color, lineWidth);
+            CurveAlgorithm::Bezier(transformedControlPoints, step, color);
             break;
         }
         case CurveAlgorithmType::NURBS:
         {
             if (controlPoints.size() >= order)
-                CurveAlgorithm::NURBS(transformedControlPoints, order, step, color, knots, weights, lineWidth);
+                CurveAlgorithm::NURBS(transformedControlPoints, order, step, color, knots, weights);
             break;
         }
         }
@@ -174,18 +180,19 @@ namespace Grafix
 
     void Renderer::DrawCross(const TransformComponent& transform, const glm::vec2& center, float radius, const glm::vec3& color)
     {
+        GraphicsAlgorithm::SetLineProperties(1.0f, LineStyleType::Solid);
         glm::vec2 transformedCenter = Math::Transform(s_ViewMatrix, Math::Transform(transform.GetTransformMatrix(), center));
 
         LineAlgorithm::Bresenham(
             { transformedCenter.x - radius, transformedCenter.y },
             { transformedCenter.x + radius, transformedCenter.y },
-            color, 1
+            color
         );
 
         LineAlgorithm::Bresenham(
             { transformedCenter.x, transformedCenter.y - radius },
             { transformedCenter.x, transformedCenter.y + radius },
-            color, 1
+            color
         );
     }
 
