@@ -1,24 +1,19 @@
 #include "pch.h"
 #include "CurveAlgorithm.h"
-
 #include "Grafix/Math/Math.h"
 
-#include <iostream>
 namespace Grafix
 {
     void CurveAlgorithm::Bezier(const std::vector<glm::vec2>& controlPoints, float step, const glm::vec3& color)
     {
         uint32_t colorValue = RGBToUint32(color);
-
         int n = controlPoints.size();
+        if (n < 2)
+            return;
         for (float u = 0; u <= 1; u += step)
         {
             glm::vec2 point{ 0.0f, 0.0f };
-            for (int i = 0; i < n; ++i)
-            {
-                float factor = Math::NChooseK(n - 1, i) * pow(u, i) * pow(1 - u, n - 1 - i);
-                point += controlPoints[i] * factor;
-            }
+            point = GetBezierPoint(controlPoints, u);
             SetPixel((int)point.x, (int)point.y, colorValue);
         }
     }
@@ -41,9 +36,21 @@ namespace Grafix
                 float factor = BaseFunction(i, order, u, knots);
                 point += controlPoints[i] * factor;
             }
-
+            
             SetPixel((int)point.x, (int)point.y, colorValue);
         }
+    }
+
+    glm::vec2 CurveAlgorithm::GetBezierPoint(const std::vector<glm::vec2>& points, float u)
+    {
+        int n = points.size();
+        std::vector<glm::vec2> bezierPoint(n-1);
+        for(int i=0;i<n-1;i++)
+            bezierPoint[i] = (1 - u) * points[i] + u * points[i + 1];
+        if (n == 2)
+            return bezierPoint[0];
+        else 
+            return GetBezierPoint(bezierPoint, u);
     }
 
     float CurveAlgorithm::BaseFunction(int i, int order, float u, const std::vector<float>& knots)
