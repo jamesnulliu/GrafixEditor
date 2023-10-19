@@ -18,7 +18,7 @@ namespace Grafix
         static uint32_t GetWidth();
         static uint32_t GetHeight();
 
-        static void SetPixel(int x, int y, uint32_t colorValue);
+        static void SetPixel(int x, int y, uint32_t colorValue,bool moveForward = true);
         static void SetSinglePixel(int x, int y, uint32_t colorValue);
 
         static uint32_t GetPixelValue(int x, int y);

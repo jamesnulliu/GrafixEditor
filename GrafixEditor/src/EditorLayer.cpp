@@ -116,7 +116,7 @@ namespace Grafix
         case ToolState::Move: { OnMoveToolUpdate(); break; }
         case ToolState::Fill: { OnBucketToolUpdate(); break; }
         case ToolState::Line: { OnLineToolUpdate(); break; }
-        case ToolState::Arc: { OnArcToolUpdate(); break; }
+        case ToolState::Arc: { OnArcToolUpdate(); break; }        
         case ToolState::Circle: { OnCircleToolUpdate(); break; }
         case ToolState::Polygon: { OnPolygonToolUpdate(); break; }
         case ToolState::Curve: { OnCurveUpdate(); break; }
@@ -578,6 +578,7 @@ namespace Grafix
                 m_HierarchyPanel.SetSelectedEntity(entity);
 
                 auto& polygon = entity.AddComponent<PolygonComponent>();
+                polygon.IsClosed = false;
 
                 polygon.Vertices.push_back(m_MousePosInWorld);
                 polygon.Color = m_PickedColor;
@@ -603,6 +604,7 @@ namespace Grafix
             if (ImGui::IsKeyPressed(ImGuiKey_Enter))
             {
                 m_IsDrawing = false;
+                polygon.IsClosed = true;
                 if (polygon.Vertices.size() <= 2)
                 {
                     m_EditorScene->RemoveEntity(entity);
